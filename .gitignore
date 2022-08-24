@@ -25,3 +25,6 @@ vendor/
 
 # configs
 configs/*.json
+
+# vscode
+.vscode
