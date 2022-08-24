@@ -1,3 +1,3 @@
-module template
+module ck2-parser
 
-go 1.14
+go 1.19

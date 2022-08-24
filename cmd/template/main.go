@@ -1,10 +1,9 @@
 package main
 
 import (
-	"template/internal/app/hello"
+	ck2 "ck2-parser/internal/app/hello"
 )
 
 func main() {
-
-	template.Hello()
+	ck2.Hello()
 }

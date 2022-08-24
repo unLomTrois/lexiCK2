@@ -1,4 +1,4 @@
-package template
+package ck2
 
 import "fmt"
 
