@@ -1,10 +1,10 @@
 # Definition of entity_1
-entity_1 ={
+entity_1= { 
 	property_1 = value1
 	property_2 = value2
-
+	
 	block_1 = { # A condition block
-		condition = yes
+		FROM = { is_rival = yes }
 	}
 	block_2 = { # A command block
 		command = yes
@@ -12,5 +12,5 @@ entity_1 ={
 }
 
 # Another entity
-entity_2 = {
+entity_2 = { 
 }
