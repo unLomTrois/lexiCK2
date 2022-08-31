@@ -40,8 +40,10 @@ func Parse(f *os.File) error {
 	// depth := 0
 
 	parser := &CK2Parser{
-		Entities: []*Entity{},
-		Depth:    0,
+		Depth:     0,
+		Elements:  []*Element{},
+		Scope:     nil,
+		PrevScope: nil,
 	}
 
 	for scanner.Scan() { // internally, it advances token based on sperator

@@ -7,32 +7,28 @@ import (
 )
 
 type CK2Parser struct {
-	Entities  []*Entity `json:"entities"`
-	Scope     *Entity   `json:"scope"`
-	PrevScope *Entity
-	Depth     int `json:"depth"`
+	Depth     int        `json:"depth"`
+	Elements  []*Element `json:"elements"`
+	Scope     *Element   `json:"scope"`
+	PrevScope *Element   `json:"prev_scope"`
 }
 
-type Entity struct {
-	Name     string           `json:"name"`
-	Elements []*EntityElement `json:"elements"`
-}
-
-type EntityType string
+type ElementType string
 
 const (
-	Property EntityType = "Property"
-	Block    EntityType = "Block"
+	Entity   ElementType = "Entity"
+	Block    ElementType = "Block"
+	Property ElementType = "Property"
 )
 
-type EntityElement struct {
+type Element struct {
 	// element is either a Block or a Property
-	Type EntityType `json:"type"`
-	// not nil if type is Block
-	Data []*EntityElement `json:"data"`
+	Type ElementType `json:"type"`
 	// not nil if type is Property
 	Key   string `json:"key"`
-	Value string `json:"value"`
+	Value string `json:"value,omitempty"`
+	// not nil if type is Block
+	Data []*Element `json:"data,omitempty"`
 }
 
 func (parser *CK2Parser) ParseLine(line []byte) []byte {
@@ -45,32 +41,28 @@ func (parser *CK2Parser) ParseLine(line []byte) []byte {
 		if value[0] == byte('{') {
 			// enter into entity scope
 			if parser.Scope == nil {
-				parser.Entities = append(parser.Entities, &Entity{
-					Name:     string(key),
-					Elements: []*EntityElement{},
+				parser.Elements = append(parser.Elements, &Element{
+					Type:  Entity,
+					Data:  []*Element{},
+					Key:   string(key),
+					Value: "",
 				})
-				parser.Scope = parser.Entities[len(parser.Entities)-1]
+				parser.Scope = parser.Elements[len(parser.Elements)-1]
 				parser.PrevScope = parser.Scope
 			} else {
 				// enter another scope
 				fmt.Println("enter into scope of:", strconv.Quote(string(key)))
-				parser.Scope.Elements = append(parser.Scope.Elements, &EntityElement{
+				parser.Scope.Data = append(parser.Scope.Data, &Element{
 					Type:  Block,
-					Data:  []*EntityElement{},
+					Data:  []*Element{},
 					Key:   string(key),
-					Value: "",
+					Value: string(value),
 				})
-				parser.Scope = parser.Entities[len(parser.Entities)-1]
+				parser.Scope = parser.Scope.Data[len(parser.Scope.Data)-1]
 				fmt.Println("scope:", parser.Scope)
-				// last.Elements = append(last.Elements, &EntityElement{
-				// 	_type: Property,
-				// 	Data:  nil,
-				// 	Key:   string(key),
-				// 	Value: string(value),
-				// })
 			}
 		} else {
-			parser.Scope.Elements = append(parser.Scope.Elements, &EntityElement{
+			parser.Scope.Data = append(parser.Scope.Data, &Element{
 				Type:  Property,
 				Data:  nil,
 				Key:   string(key),
@@ -81,7 +73,11 @@ func (parser *CK2Parser) ParseLine(line []byte) []byte {
 	}
 	if len(line) > 0 && line[0] == byte('}') {
 		fmt.Println("END of scope")
-		parser.Scope = parser.PrevScope
+		if parser.Scope == parser.PrevScope {
+			parser.Scope = nil
+		} else {
+			parser.Scope = parser.PrevScope
+		}
 	}
 
 	fmt.Print("\n")
