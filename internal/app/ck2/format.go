@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"strconv"
 )
 
 // var printwidth = 80
@@ -77,59 +76,5 @@ func FormatLine(line []byte) []byte {
 	line = bytes.ReplaceAll(line, []byte(" = "), []byte("="))
 	line = bytes.ReplaceAll(line, []byte("= {"), []byte("={"))
 	line = bytes.ReplaceAll(line, []byte("="), []byte(" = "))
-	return line
-}
-
-func (parser *CK2Parser) ParseLine(line []byte) []byte {
-	if bytes.Contains(line, []byte("=")) {
-		kv := bytes.Split(line, []byte(" = "))
-		key := kv[0]
-		value := kv[1]
-		fmt.Println("key:", strconv.Quote(string(key)), "value:", strconv.Quote(string(value)))
-
-		if value[0] == byte('{') {
-			// enter into entity scope
-			if parser.Scope == nil {
-				parser.Entities = append(parser.Entities, &Entity{
-					Name:     string(key),
-					Elements: []*EntityElement{},
-				})
-				parser.Scope = parser.Entities[len(parser.Entities)-1]
-				parser.PrevScope = parser.Scope
-			} else {
-				// enter another scope
-				fmt.Println("enter into scope of:", strconv.Quote(string(key)))
-				parser.Scope.Elements = append(parser.Scope.Elements, &EntityElement{
-					Type:  Block,
-					Data:  []*EntityElement{},
-					Key:   string(key),
-					Value: "",
-				})
-				parser.Scope = parser.Entities[len(parser.Entities)-1]
-				fmt.Println("scope:", parser.Scope)
-				// last.Elements = append(last.Elements, &EntityElement{
-				// 	_type: Property,
-				// 	Data:  nil,
-				// 	Key:   string(key),
-				// 	Value: string(value),
-				// })
-			}
-		} else {
-			parser.Scope.Elements = append(parser.Scope.Elements, &EntityElement{
-				Type:  Property,
-				Data:  nil,
-				Key:   string(key),
-				Value: string(value),
-			})
-			fmt.Println("property:", strconv.Quote(string(key)), "value:", strconv.Quote(string(value)))
-		}
-	}
-	if len(line) > 0 && line[0] == byte('}') {
-		fmt.Println("END of scope")
-		parser.Scope = parser.PrevScope
-	}
-
-	fmt.Print("\n")
-
 	return line
 }
