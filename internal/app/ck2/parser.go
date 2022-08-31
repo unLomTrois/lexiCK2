@@ -34,7 +34,7 @@ type Element struct {
 
 func (parser *CK2Parser) ParseLine(line []byte) []byte {
 	if bytes.Contains(line, []byte("=")) {
-		kv := bytes.Split(line, []byte(" = "))
+		kv := bytes.SplitN(line, []byte(" = "), 2)
 		key := kv[0]
 		value := kv[1]
 		fmt.Println("key:", strconv.Quote(string(key)), "value:", strconv.Quote(string(value)))
