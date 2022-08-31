@@ -1,0 +1,16 @@
+# Definition of entity_1
+entity_1 ={
+	property_1 = value1
+	property_2 = value2
+
+	block_1 = { # A condition block
+		condition = yes
+	}
+	block_2 = { # A command block
+		command = yes
+	}
+}
+
+# Another entity
+entity_2 = {
+}
