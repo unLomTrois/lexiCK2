@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 )
 
@@ -68,7 +67,7 @@ func Parse(f *os.File) error {
 
 	aJSON, _ := json.MarshalIndent(parser, "", "  ")
 	fmt.Printf("JSON Print - \n%s\n", string(aJSON))
-	_ = ioutil.WriteFile("tmp/simple.json", aJSON, 0644)
+	_ = os.WriteFile("tmp/simple.json", aJSON, 0644)
 	w.Flush()
 
 	return nil
