@@ -1,9 +1,25 @@
 package main
 
 import (
-	ck2 "ck2-parser/internal/app/hello"
+	"ck2-parser/internal/app/ck2"
+	"log"
+	"os"
 )
 
 func main() {
-	ck2.Hello()
+
+	file, err := os.Open("data/elementary.txt")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer func() {
+		if err = file.Close(); err != nil {
+			log.Fatal(err)
+		}
+	}()
+
+	_, err = ck2.Parse(file)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
