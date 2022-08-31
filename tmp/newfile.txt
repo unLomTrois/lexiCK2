@@ -1,16 +1,36 @@
-# Definition of entity_1
-entity_1 = {
-property_1 = value1
-property_2 = value2
+namespace = airbender
 
-block_1 = { # A condition block
-FROM = { is_rival = yes }
+character_event = {
+id = airbender.1
+desc = "EVTDESCAIRBENDER1"
+picture = GFX_evt_comet
+
+hide_window = yes
+culture_group = air_nomad_culture
+
+is_triggered_only = yes
+
+trigger = {
+NOT = { trait = airbender }
 }
-block_2 = { # A command block
-command = yes
+
+immediate = {
+add_trait = airbender
 }
 }
 
-# Another entity
-entity_2 = {
+character_event = {
+id = airbender.2
+hide_window = yes
+culture_group = air_nomad_culture
+
+is_triggered_only = yes
+
+trigger = {
+NOT = { trait = airbender }
+}
+
+immediate = {
+add_trait = airbender
+}
 }

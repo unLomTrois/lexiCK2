@@ -18,3 +18,19 @@ character_event = {
 		add_trait = airbender
 	}
 }
+
+character_event = {
+	id = airbender.2
+		hide_window = yes
+	culture_group = air_nomad_culture
+
+is_triggered_only = yes
+	
+	trigger = {
+		NOT = { trait = airbender }
+	}
+
+	immediate = {
+		add_trait = airbender
+	}
+}
