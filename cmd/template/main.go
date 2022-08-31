@@ -18,7 +18,7 @@ func main() {
 		}
 	}()
 
-	_, err = ck2.Parse(file)
+	err = ck2.Parse(file)
 	if err != nil {
 		log.Fatal(err)
 	}
