@@ -9,7 +9,7 @@ import (
 type CK2Parser struct {
 	Namespace string  `json:"namespace"`
 	Depth     int     `json:"depth"`
-	Nodes     []*Node `json:"elements"`
+	Data      []*Node `json:"data"`
 	Scope     *Node   `json:"-"`
 	PrevScope *Node   `json:"-"`
 }
@@ -36,7 +36,7 @@ func NewParser() *CK2Parser {
 	return &CK2Parser{
 		Namespace: "",
 		Depth:     0,
-		Nodes:     []*Node{},
+		Data:      []*Node{},
 		Scope:     nil,
 		PrevScope: nil,
 	}
@@ -57,13 +57,13 @@ func (parser *CK2Parser) ParseLine(line []byte) []byte {
 			if value[0] == byte('{') {
 				// enter into entity scope
 				if parser.Scope == nil {
-					parser.Nodes = append(parser.Nodes, &Node{
+					parser.Data = append(parser.Data, &Node{
 						Type:  Entity,
 						Data:  []*Node{},
 						Key:   string(key),
 						Value: "",
 					})
-					parser.Scope = parser.Nodes[len(parser.Nodes)-1]
+					parser.Scope = parser.Data[len(parser.Data)-1]
 					parser.PrevScope = parser.Scope
 				} else {
 					// enter another scope
