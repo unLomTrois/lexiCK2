@@ -27,9 +27,9 @@ type Node struct {
 	Type NodeType `json:"type"`
 	// not nil if type is Property
 	Key   string `json:"key"`
-	Value string `json:"value,omitempty"`
+	Value string `json:"value"`
 	// not nil if type is Block
-	Data []*Node `json:"data,omitempty"`
+	Data []*Node `json:"data"`
 }
 
 func NewParser() *CK2Parser {
