@@ -39,12 +39,7 @@ func Parse(f *os.File) error {
 	linenumber := 1
 	// depth := 0
 
-	parser := &CK2Parser{
-		Depth:     0,
-		Elements:  []*Element{},
-		Scope:     nil,
-		PrevScope: nil,
-	}
+	parser := NewParser()
 
 	for scanner.Scan() { // internally, it advances token based on sperator
 		text_bytes := scanner.Bytes()

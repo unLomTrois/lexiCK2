@@ -32,6 +32,16 @@ type Element struct {
 	Data []*Element `json:"data,omitempty"`
 }
 
+func NewParser() *CK2Parser {
+	return &CK2Parser{
+		Namespace: "",
+		Depth:     0,
+		Elements:  []*Element{},
+		Scope:     nil,
+		PrevScope: nil,
+	}
+}
+
 func (parser *CK2Parser) ParseLine(line []byte) []byte {
 	if bytes.Contains(line, []byte("=")) {
 		kv := bytes.SplitN(line, []byte(" = "), 2)
