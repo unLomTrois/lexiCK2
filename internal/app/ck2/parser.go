@@ -26,13 +26,14 @@ const (
 
 type Node struct {
 	// element is either a Block or a Property
-	Type  NodeType `json:"type"`
-	Level int      `json:"level"`
+	Type   NodeType `json:"type"`
+	Parent *Node    `json:"-"`
+	Level  int      `json:"level"`
 	// not nil if type is Property
 	Key   string `json:"key"`
 	Value string `json:"value"`
 	// not nil if type is Block
-	Data []*Node `json:"data"`
+	Data []*Node `json:"data,omitempty"`
 }
 
 func NewParser(file_path string) *CK2Parser {
@@ -43,6 +44,16 @@ func NewParser(file_path string) *CK2Parser {
 		Data:      []*Node{},
 		Scope:     nil,
 		PrevScope: nil,
+	}
+}
+
+func (parser *CK2Parser) NewNode(node_type NodeType, key string, value string) *Node {
+	return &Node{
+		Type:  node_type,
+		Level: parser.Level,
+		Key:   key,
+		Value: value,
+		Data:  []*Node{},
 	}
 }
 
@@ -63,28 +74,21 @@ func (parser *CK2Parser) InsertNode(node_type NodeType, key string, value string
 			parser.PrevScope = parser.Scope
 		}
 	case Block:
-		fmt.Println("enter into scope of:", strconv.Quote(key))
-		parser.Scope.Data = append(parser.Scope.Data, &Node{
-			Type:  Block,
-			Level: parser.Level,
-			Key:   key,
-			Value: value,
-			Data:  []*Node{},
-		})
-		parser.Scope = parser.Scope.Data[len(parser.Scope.Data)-1]
+		fmt.Println("ENTER into scope of:", strconv.Quote(key))
+		new_node := parser.NewNode(Block, key, value)
+		parser.Scope.Data = append(parser.Scope.Data, new_node)
+		new_node.Parent = parser.Scope
+		fmt.Println("PARENT:", new_node.Parent.Key)
+
+		parser.Scope = new_node
 		if !strings.Contains(value, "}") {
 			parser.Level++
 		}
-
 		fmt.Println("scope:", parser.Scope)
+		fmt.Println("prevscope:", parser.PrevScope)
 	case Property:
-		parser.Scope.Data = append(parser.Scope.Data, &Node{
-			Type:  Property,
-			Level: parser.Level,
-			Key:   key,
-			Value: value,
-			Data:  nil,
-		})
+		new_property := parser.NewNode(Property, key, value)
+		parser.Scope.Data = append(parser.Scope.Data, new_property)
 		fmt.Println("property:", strconv.Quote(key), "value:", strconv.Quote(value))
 	}
 }
@@ -115,7 +119,7 @@ func (parser *CK2Parser) ParseLine(line []byte) []byte {
 	}
 
 	if len(line) > 0 && line[0] == byte('}') {
-		fmt.Println("END of scope")
+		fmt.Println("END of scope", parser.Scope)
 		if parser.Scope == parser.PrevScope {
 			parser.Scope = nil
 			parser.Level--

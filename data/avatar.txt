@@ -1,8 +1,6 @@
+namespace = ADUEL
+
 character_event = { # START DUEL - Event Handler - Current Scope: Challenged
-	id = ADUEL.1
-	is_triggered_only = yes
-	hide_window = yes
-	
 	option = { # Duel: Firebender v Firebender
 		trigger = {
 			trait = firebender
@@ -13,50 +11,6 @@ character_event = { # START DUEL - Event Handler - Current Scope: Challenged
 		character_event = { id = ADUEL.2 days = 3 } # Agni Kai - Challenge
 	}
 	option = { # Duel: Bender v Bender
-		trigger = {
-			is_bender_trait_trigger = yes
-			FROMFROM = {
-				is_bender_trait_trigger = yes
-			}
-			NOR = {
-				AND = {
-					trait = firebender
-					FROMFROM = {
-						trait = firebender
-					}
-				}
-			}
-		}
-		character_event = { id = ADUEL.3 days = 3 } # Bending Battle - Challenge
-	}
-	option = { # Duel Muggle v Muggle
-		trigger = {
-			is_bender_trait_trigger = no
-			FROMFROM = {
-				is_bender_trait_trigger = no
-			}
-		}
-		character_event = { id = ADUEL.3 days = 3 } # Nonbender Battle - Challenge
-	}
-	option = { # Duel Bender v Muggle
-		trigger = {
-			is_bender_trait_trigger = no
-			FROMFROM = {
-				is_bender_trait_trigger = yes
-			}
-		}
-		# character_event = { id = ADUEL.3 days = 3 } # Nonbender v Bender Battle - Challenge
-		FROMFROM = {
-			character_event = { id = ADUEL.4 } # Bender v Nonbender Battle - Challenger (Currently Not Compelte)
-		}
-	}
-	option = { # Duel Muggle v Bender
-		trigger = {
-			is_bender_trait_trigger = yes
-			FROMFROM = {
-				is_bender_trait_trigger = no
-			}
-		}
-		character_event = { id = ADUEL.3 days = 3 } # Nonbender v Bender Battle - Challenge
+
 	}
 }
