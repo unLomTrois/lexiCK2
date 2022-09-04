@@ -1,4 +1,7 @@
 # Comment
+
 character_event = { # INLINE COMMENT
-	id = 200
+	id = 100
+
+	desc = 200
 }

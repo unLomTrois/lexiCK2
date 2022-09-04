@@ -8,20 +8,25 @@ import (
 type TokenType string
 
 const (
-	COMMENT TokenType = "COMMENT"
-	WORD    TokenType = "WORD"
-	NUMBER  TokenType = "NUMBER"
-	NULL    TokenType = "NULL"
-	EQUALS  TokenType = "EQUALS"
-	START   TokenType = "START"
-	END     TokenType = "END"
+	COMMENT    TokenType = "COMMENT"
+	WORD       TokenType = "WORD"
+	NUMBER     TokenType = "NUMBER"
+	NULL       TokenType = "NULL"
+	WHITESPACE TokenType = "WHITESPACE"
+	NEXTLINE   TokenType = "NEXTLINE"
+	TAB        TokenType = "TAB"
+	EQUALS     TokenType = "EQUALS"
+	START      TokenType = "START"
+	END        TokenType = "END"
 )
 
 var Spec = map[string]TokenType{
 	`^#.+`:                    COMMENT,
 	`^"?\w+:?(\w+)?(\.\d)?"?`: WORD,
 	`^\d+`:                    NUMBER,
-	`^\s+`:                    NULL,
+	`^ +`:                     NULL,
+	`^\n+`:                    NEXTLINE,
+	`^\t+`:                    NULL,
 	`^=`:                      EQUALS,
 	`^{`:                      START,
 	`^}`:                      END,

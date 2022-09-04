@@ -1,9 +1,8 @@
 package ck2parser
 
 import (
-	"bufio"
 	"ck2-parser/internal/app/lexer"
-	"encoding/json"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -27,11 +26,6 @@ func New(file *os.File) (*Parser, error) {
 	}
 
 	lexer := lexer.New(b)
-
-	// lookahead, err := lexer.GetNextToken()
-	// if err != nil {
-	// 	return nil, err
-	// }
 
 	return &Parser{
 		filepath:  file_path,
@@ -67,45 +61,15 @@ func (p *Parser) Parse() error {
 		if token == nil {
 			break
 		}
+		fmt.Println(token)
 		token_queue = append(token_queue, token)
 	}
 
-	new_file, err := os.Create("./tmp/meta.json")
-	if err != nil {
-		return err
-	}
-	defer new_file.Close()
-
-	w := bufio.NewWriter(new_file)
-	aJSON, _ := json.MarshalIndent(token_queue, "", "  ")
-	w.Write(aJSON)
-	w.Flush()
-
-	// kek, err = p._eat(lexer.WORD)
-	// fmt.Println(kek)
-	// kek, err = p._eat(lexer.EQUALS)
-	// fmt.Println(kek)
-	// kek, err = p._eat(lexer.START)
-	// fmt.Println(kek)
-	// kek, err = p._eat(lexer.COMMENT)
-	// fmt.Println(kek)
-
-	// fmt.Println(strconv.Quote(string(token)))
-	// token, _ = p.lexer.GetNextToken()
-	// fmt.Println(strconv.Quote(string(token)))
-	// token, _ = p.lexer.GetNextToken()
-	// fmt.Println(strconv.Quote(string(token)))
-	// token, _ = p.lexer.GetNextToken()
-	// fmt.Println(strconv.Quote(string(token)))
-	// token, _ = p.lexer.GetNextToken()
-	// fmt.Println(strconv.Quote(string(token)))
-	// token, _ = p.lexer.GetNextToken()
-	// fmt.Println(strconv.Quote(string(token)))
-	// token, _ = p.lexer.GetNextToken()
-	// fmt.Println(strconv.Quote(string(token)))
-
-	// p.lexer.GetNextToken()
-	// fmt.Println(lookahead)
+	p.ParseTokenQueue(token_queue)
 
 	return nil
+}
+
+func (p *Parser) ParseTokenQueue(queue []*lexer.Token) {
+
 }

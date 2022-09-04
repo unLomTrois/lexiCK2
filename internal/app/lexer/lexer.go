@@ -2,6 +2,7 @@ package lexer
 
 import (
 	"bytes"
+	"fmt"
 	"regexp"
 	"strconv"
 )
@@ -14,6 +15,7 @@ type Lexer struct {
 func NormalizeText(text []byte) []byte {
 	text = bytes.TrimSpace(text)
 	text = bytes.ReplaceAll(text, []byte("\r\n"), []byte("\n"))
+	text = bytes.ReplaceAll(text, []byte("\t\n"), []byte("\n"))
 	text = bytes.ReplaceAll(text, []byte(" = "), []byte("="))
 	text = bytes.ReplaceAll(text, []byte("= {"), []byte("={"))
 	text = bytes.ReplaceAll(text, []byte("="), []byte(" = "))
@@ -21,8 +23,11 @@ func NormalizeText(text []byte) []byte {
 }
 
 func New(text []byte) *Lexer {
+	normalized := NormalizeText(text)
+	fmt.Println(strconv.Quote(string(normalized)))
+
 	return &Lexer{
-		Text:   NormalizeText(text),
+		Text:   normalized,
 		cursor: 0,
 	}
 }
