@@ -1,7 +1,7 @@
 # Comment
-
+namespace = avatar
 character_event = { # INLINE COMMENT
-	id = 100
+	id = avatar.100
 
-	desc = 200
+	desc = avatar.200
 }

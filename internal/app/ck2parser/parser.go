@@ -2,7 +2,6 @@ package ck2parser
 
 import (
 	"ck2-parser/internal/app/lexer"
-	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -61,15 +60,11 @@ func (p *Parser) Parse() error {
 		if token == nil {
 			break
 		}
-		fmt.Println(token)
 		token_queue = append(token_queue, token)
 	}
 
-	p.ParseTokenQueue(token_queue)
+	queue_parser := NewQueueParser(token_queue)
+	queue_parser.Parse()
 
 	return nil
-}
-
-func (p *Parser) ParseTokenQueue(queue []*lexer.Token) {
-
 }
