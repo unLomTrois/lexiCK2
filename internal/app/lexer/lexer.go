@@ -1,6 +1,7 @@
 package lexer
 
 import (
+	"bytes"
 	"regexp"
 	"strconv"
 )
@@ -10,9 +11,18 @@ type Lexer struct {
 	cursor int
 }
 
+func NormalizeText(text []byte) []byte {
+	text = bytes.TrimSpace(text)
+	text = bytes.ReplaceAll(text, []byte("\r\n"), []byte("\n"))
+	text = bytes.ReplaceAll(text, []byte(" = "), []byte("="))
+	text = bytes.ReplaceAll(text, []byte("= {"), []byte("={"))
+	text = bytes.ReplaceAll(text, []byte("="), []byte(" = "))
+	return text
+}
+
 func New(text []byte) *Lexer {
 	return &Lexer{
-		Text:   text,
+		Text:   NormalizeText(text),
 		cursor: 0,
 	}
 }
