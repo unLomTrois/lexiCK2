@@ -1,6 +1,7 @@
 package ck2parser
 
 import (
+	"ck2-parser/internal/app/lexer"
 	"fmt"
 	"io"
 	"os"
@@ -11,6 +12,7 @@ import (
 type Parser struct {
 	filepath string
 	file     *os.File
+	lexer    *lexer.Lexer
 }
 
 func New(file *os.File) (*Parser, error) {
@@ -19,19 +21,21 @@ func New(file *os.File) (*Parser, error) {
 		return nil, err
 	}
 
+	b, err := io.ReadAll(file)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Parser{
 		filepath: file_path,
 		file:     file,
+		lexer:    lexer.New(b),
 	}, nil
 }
 
 func (p *Parser) Parse() error {
-	b, err := io.ReadAll(p.file)
-	if err != nil {
-		return nil
-	}
-	fmt.Println(b)
-	fmt.Println(strconv.Quote(string(b)))
+	fmt.Println(p.lexer.Text)
+	fmt.Println(strconv.Quote(string(p.lexer.Text)))
 
 	return nil
 }

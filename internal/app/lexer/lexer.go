@@ -1,11 +1,11 @@
 package lexer
 
 type Lexer struct {
-	text string
+	Text []byte
 }
 
-func New(text string) *Lexer {
+func New(text []byte) *Lexer {
 	return &Lexer{
-		text: text,
+		Text: text,
 	}
 }
