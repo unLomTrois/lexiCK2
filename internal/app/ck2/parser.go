@@ -13,7 +13,6 @@ type CK2Parser struct {
 	Level     int     `json:"level"`
 	Data      []*Node `json:"data"`
 	Scope     *Node   `json:"-"`
-	PrevScope *Node   `json:"-"`
 }
 
 type NodeType string
@@ -43,7 +42,6 @@ func NewParser(file_path string) *CK2Parser {
 		Level:     0,
 		Data:      []*Node{},
 		Scope:     nil,
-		PrevScope: nil,
 	}
 }
 
@@ -71,7 +69,6 @@ func (parser *CK2Parser) InsertNode(node_type NodeType, key string, value string
 			})
 			parser.Scope = parser.Data[len(parser.Data)-1]
 			parser.Level++
-			parser.PrevScope = parser.Scope
 		}
 	case Block:
 		fmt.Println("ENTER into scope of:", strconv.Quote(key))
@@ -80,12 +77,11 @@ func (parser *CK2Parser) InsertNode(node_type NodeType, key string, value string
 		new_node.Parent = parser.Scope
 		fmt.Println("PARENT:", new_node.Parent.Key)
 
-		parser.Scope = new_node
 		if !strings.Contains(value, "}") {
+			parser.Scope = new_node
 			parser.Level++
 		}
 		fmt.Println("scope:", parser.Scope)
-		fmt.Println("prevscope:", parser.PrevScope)
 	case Property:
 		new_property := parser.NewNode(Property, key, value)
 		parser.Scope.Data = append(parser.Scope.Data, new_property)
@@ -119,14 +115,18 @@ func (parser *CK2Parser) ParseLine(line []byte) []byte {
 	}
 
 	if len(line) > 0 && line[0] == byte('}') {
-		fmt.Println("END of scope", parser.Scope)
-		if parser.Scope == parser.PrevScope {
-			parser.Scope = nil
-			parser.Level--
-		} else {
-			parser.Scope = parser.PrevScope
-			parser.Level--
-		}
+		fmt.Println("END of scope:", parser.Scope)
+		parser.Scope = parser.Scope.Parent
+		fmt.Println("NEXT SCOPE:", parser.Scope)
+		parser.Level--
+
+		// if parser.Scope == parser.PrevScope {
+		// 	parser.Scope = nil
+		// 	parser.Level--
+		// } else {
+		// 	parser.Scope = parser.Scope.Parent
+		// 	parser.Level--
+		// }
 	}
 
 	fmt.Print("\n")

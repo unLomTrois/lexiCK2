@@ -1,6 +1,10 @@
 namespace = ADUEL
 
 character_event = { # START DUEL - Event Handler - Current Scope: Challenged
+	id = ADUEL.1
+	is_triggered_only = yes
+	hide_window = yes
+	
 	option = { # Duel: Firebender v Firebender
 		trigger = {
 			trait = firebender
@@ -11,6 +15,21 @@ character_event = { # START DUEL - Event Handler - Current Scope: Challenged
 		character_event = { id = ADUEL.2 days = 3 } # Agni Kai - Challenge
 	}
 	option = { # Duel: Bender v Bender
-
+		trigger = {
+			is_bender_trait_trigger = yes
+			FROMFROM = {
+				is_bender_trait_trigger = yes
+			}
+			NOR = {
+				AND = {
+					trait = firebender
+					FROMFROM = {
+						trait = firebender
+					}
+				}
+			}
+		}
+		character_event = { id = ADUEL.3 days = 3 } # Bending Battle - Challenge
 	}
+	
 }
