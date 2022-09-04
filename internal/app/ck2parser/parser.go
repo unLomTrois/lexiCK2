@@ -2,6 +2,7 @@ package ck2parser
 
 import (
 	"ck2-parser/internal/app/lexer"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -33,7 +34,7 @@ func New(file *os.File) (*Parser, error) {
 	}, nil
 }
 
-func (p *Parser) _eat(tokentype lexer.TokenType) (*lexer.Token, error) {
+func (p *Parser) _eat(tokentype lexer.TokenType) *lexer.Token {
 	token := p.lookahead
 	if token == nil {
 		panic("Unexpected end of input, expected: " + string(tokentype))
@@ -45,26 +46,55 @@ func (p *Parser) _eat(tokentype lexer.TokenType) (*lexer.Token, error) {
 	var err error
 	p.lookahead, err = p.lexer.GetNextToken()
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
-	return token, nil
+	return token
 }
 
 func (p *Parser) Parse() error {
-	token_queue := make([]*lexer.Token, 0)
-	for {
-		token, err := p.lexer.GetNextToken()
-		if err != nil {
-			return err
-		}
-		if token == nil {
-			break
-		}
-		token_queue = append(token_queue, token)
-	}
+	p.lookahead, _ = p.lexer.GetNextToken()
 
-	queue_parser := NewQueueParser(token_queue)
-	queue_parser.Parse()
+	lit := p.Literal()
+	fmt.Println(lit)
+	lit = p.Literal()
+	fmt.Println(lit)
+	lit = p.Literal()
+	fmt.Println(lit)
 
 	return nil
+}
+
+type Literal struct {
+	Type  string
+	Value string
+}
+
+func (p *Parser) Literal() *Literal {
+	switch p.lookahead.Type {
+	case lexer.WORD:
+		return p.WordLiteral()
+	case lexer.COMMENT:
+		return p.CommentLiteral()
+	case lexer.EQUALS:
+		fmt.Println(p.lookahead)
+		return nil
+	default:
+		panic("Literal: unexpected literal production")
+	}
+}
+
+func (p *Parser) WordLiteral() *Literal {
+	token := p._eat(lexer.WORD)
+	return &Literal{
+		Type:  "WordLiteral",
+		Value: string(token.Value),
+	}
+}
+
+func (p *Parser) CommentLiteral() *Literal {
+	token := p._eat(lexer.COMMENT)
+	return &Literal{
+		Type:  "CommentLiteral",
+		Value: string(token.Value),
+	}
 }
