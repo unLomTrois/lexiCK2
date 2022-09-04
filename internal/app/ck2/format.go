@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strconv"
 )
 
 // var printwidth = 80
@@ -16,6 +17,14 @@ import (
 // type CK2Formatter struct {
 // 	file *os.File `json:"file"`
 // }
+
+func Parse2(file *os.File) {
+
+	b, _ := io.ReadAll(file)
+	b = FormatLine(b)
+	fmt.Println(b)
+	fmt.Println(strconv.Quote(string(b)))
+}
 
 func Parse(f *os.File) error {
 	file_path, err := filepath.Abs(f.Name())
@@ -31,7 +40,7 @@ func Parse(f *os.File) error {
 
 	// * init scanner
 	scanner := bufio.NewScanner(buf)
-	scanner.Split(ScanLinesLF)
+	scanner.Split(bufio.ScanRunes)
 
 	new_file, err := os.Create("./tmp/newfile.txt")
 	if err != nil {
@@ -76,8 +85,8 @@ func Parse(f *os.File) error {
 
 func FormatLine(line []byte) []byte {
 	line = bytes.TrimSpace(line)
-	line = bytes.ReplaceAll(line, []byte(" = "), []byte("="))
-	line = bytes.ReplaceAll(line, []byte("= {"), []byte("={"))
-	line = bytes.ReplaceAll(line, []byte("="), []byte(" = "))
+	// line = bytes.ReplaceAll(line, []byte(" = "), []byte("="))
+	// line = bytes.ReplaceAll(line, []byte("= {"), []byte("={"))
+	// line = bytes.ReplaceAll(line, []byte("="), []byte(" = "))
 	return line
 }

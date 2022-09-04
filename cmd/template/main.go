@@ -1,14 +1,14 @@
 package main
 
 import (
-	"ck2-parser/internal/app/ck2"
+	ck2parser "ck2-parser/internal/app/ck2parser"
 	"log"
 	"os"
 )
 
 func main() {
 
-	file, err := os.Open("data/avatar.txt")
+	file, err := os.Open("data/elementary.txt")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -18,7 +18,12 @@ func main() {
 		}
 	}()
 
-	err = ck2.Parse(file)
+	parser, err := ck2parser.New(file)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = parser.Parse()
 	if err != nil {
 		log.Fatal(err)
 	}
