@@ -86,24 +86,24 @@ func (parser *CK2Parser) InsertNode(node_type NodeType, key string, value string
 func (parser *CK2Parser) ParseLine(line []byte) []byte {
 	if bytes.Contains(line, []byte("=")) {
 		kv := bytes.SplitN(line, []byte(" = "), 2)
-		key := kv[0]
-		value := kv[1]
-		fmt.Println("key:", strconv.Quote(string(key)), "value:", strconv.Quote(string(value)))
+		key := string(kv[0])
+		value := string(kv[1])
+		fmt.Println("key:", strconv.Quote(key), "value:", strconv.Quote(value))
 
 		// namespace
 		if parser.Scope == nil && parser.Namespace == "" {
-			parser.Namespace = string(value)
+			parser.Namespace = value
 		} else {
 			if value[0] == byte('{') {
 				// enter into entity scope
 				if parser.Scope == nil {
-					parser.InsertNode(Entity, string(key), string(value))
+					parser.InsertNode(Entity, key, value)
 				} else {
 					// enter another scope
-					parser.InsertNode(Block, string(key), string(value))
+					parser.InsertNode(Block, key, value)
 				}
 			} else {
-				parser.InsertNode(Property, string(key), string(value))
+				parser.InsertNode(Property, key, value)
 			}
 		}
 	}
