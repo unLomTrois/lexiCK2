@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"strconv"
+	"strings"
 )
 
 type CK2Parser struct {
@@ -52,29 +53,34 @@ func (parser *CK2Parser) InsertNode(node_type NodeType, key string, value string
 		if parser.Scope == nil {
 			parser.Data = append(parser.Data, &Node{
 				Type:  Entity,
-				Level: 0,
+				Level: parser.Level,
 				Key:   key,
 				Value: value,
 				Data:  []*Node{},
 			})
 			parser.Scope = parser.Data[len(parser.Data)-1]
+			parser.Level++
 			parser.PrevScope = parser.Scope
 		}
 	case Block:
 		fmt.Println("enter into scope of:", strconv.Quote(key))
 		parser.Scope.Data = append(parser.Scope.Data, &Node{
 			Type:  Block,
-			Level: 0,
+			Level: parser.Level,
 			Key:   key,
 			Value: value,
 			Data:  []*Node{},
 		})
 		parser.Scope = parser.Scope.Data[len(parser.Scope.Data)-1]
+		if !strings.Contains(value, "}") {
+			parser.Level++
+		}
+
 		fmt.Println("scope:", parser.Scope)
 	case Property:
 		parser.Scope.Data = append(parser.Scope.Data, &Node{
 			Type:  Property,
-			Level: 0,
+			Level: parser.Level,
 			Key:   key,
 			Value: value,
 			Data:  nil,
@@ -112,8 +118,10 @@ func (parser *CK2Parser) ParseLine(line []byte) []byte {
 		fmt.Println("END of scope")
 		if parser.Scope == parser.PrevScope {
 			parser.Scope = nil
+			parser.Level--
 		} else {
 			parser.Scope = parser.PrevScope
+			parser.Level--
 		}
 	}
 
