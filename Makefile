@@ -9,6 +9,6 @@ build:
 	go build -v -o $(output) $(cmd)
 
 run:
-	go run -v $(cmd)
+	go run $(cmd)
 
 .DEFAULT_GOAL := build
