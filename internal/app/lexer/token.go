@@ -1,6 +1,9 @@
 package lexer
 
-import "fmt"
+import (
+	"fmt"
+	"strconv"
+)
 
 type TokenType string
 
@@ -15,13 +18,13 @@ const (
 )
 
 var Spec = map[string]TokenType{
-	`^#.+`:    COMMENT,
-	`^[A-z]+`: WORD,
-	`^\d+`:    NUMBER,
-	`^\s+`:    NULL,
-	`^=`:      EQUALS,
-	`^{`:      START,
-	`^}`:      END,
+	`^#.+`:                COMMENT,
+	`^\w+:?(\w+)?(\.\d)?`: WORD,
+	`^\d+`:                NUMBER,
+	`^\s+`:                NULL,
+	`^=`:                  EQUALS,
+	`^{`:                  START,
+	`^}`:                  END,
 }
 
 type Token struct {
@@ -30,5 +33,5 @@ type Token struct {
 }
 
 func (t Token) String() string {
-	return fmt.Sprintf("type: %v, value: %v", t.Type, string(t.Value))
+	return fmt.Sprintf("type:\t%v,\tvalue:\t%v", t.Type, strconv.Quote(string(t.Value)))
 }

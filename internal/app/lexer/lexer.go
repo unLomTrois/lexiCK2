@@ -2,6 +2,7 @@ package lexer
 
 import (
 	"regexp"
+	"strconv"
 )
 
 type Lexer struct {
@@ -40,20 +41,24 @@ func (l *Lexer) GetNextToken() (*Token, error) {
 	_string := l.Text[l.cursor:]
 
 	for k, token_type := range Spec {
+		// todo: implement less greedy matching
 		// fmt.Println("try:", k)
 		reg := regexp.MustCompile(k)
 		token_value := l._match(reg, _string)
 		if token_value == nil {
+			// fmt.Println("continue")
 			continue
 		}
 		if token_type == NULL {
+			// fmt.Println("null")
 			return l.GetNextToken()
 		}
+		// fmt.Println("return")
 		return &Token{
 			Type:  token_type,
 			Value: token_value,
 		}, nil
 	}
 
-	panic("Unexpected token: " + string(_string[0]))
+	panic("Unexpected token: " + strconv.Quote(string(_string[0])))
 }

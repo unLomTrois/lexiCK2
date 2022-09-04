@@ -1,8 +1,9 @@
 package ck2parser
 
 import (
+	"bufio"
 	"ck2-parser/internal/app/lexer"
-	"fmt"
+	"encoding/json"
 	"io"
 	"os"
 	"path/filepath"
@@ -27,15 +28,15 @@ func New(file *os.File) (*Parser, error) {
 
 	lexer := lexer.New(b)
 
-	lookahead, err := lexer.GetNextToken()
-	if err != nil {
-		return nil, err
-	}
+	// lookahead, err := lexer.GetNextToken()
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	return &Parser{
 		filepath:  file_path,
 		lexer:     lexer,
-		lookahead: lookahead,
+		lookahead: nil,
 	}, nil
 }
 
@@ -57,12 +58,29 @@ func (p *Parser) _eat(tokentype lexer.TokenType) (*lexer.Token, error) {
 }
 
 func (p *Parser) Parse() error {
-	kek, _ := p._eat(lexer.COMMENT)
-	fmt.Println(kek)
-	kek, _ = p._eat(lexer.WORD)
-	fmt.Println(kek)
-	kek, _ = p._eat(lexer.EQUALS)
-	fmt.Println(kek)
+	token_queue := make([]*lexer.Token, 0)
+	for {
+		token, err := p.lexer.GetNextToken()
+		if err != nil {
+			return err
+		}
+		if token == nil {
+			break
+		}
+		token_queue = append(token_queue, token)
+	}
+
+	new_file, err := os.Create("./tmp/meta.json")
+	if err != nil {
+		return err
+	}
+	defer new_file.Close()
+
+	w := bufio.NewWriter(new_file)
+	aJSON, _ := json.MarshalIndent(token_queue, "", "  ")
+	w.Write(aJSON)
+	w.Flush()
+
 	// kek, err = p._eat(lexer.WORD)
 	// fmt.Println(kek)
 	// kek, err = p._eat(lexer.EQUALS)
