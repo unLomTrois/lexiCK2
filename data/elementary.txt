@@ -1,14 +1,3 @@
-entity_1= { 
-	property_1 = value1
-	property_2 = value2
-	
-	block_1 = { # A condition block
-		FROM = { is_rival = yes }
-	}
-	block_2 = { # A command block
-		command = yes
-	}
-}
-
-entity_2 = { 
-}
+character_event = entity_keo
+entity_keo = 200
+character_event = 300

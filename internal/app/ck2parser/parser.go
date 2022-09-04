@@ -11,7 +11,6 @@ import (
 
 type Parser struct {
 	filepath string
-	file     *os.File
 	lexer    *lexer.Lexer
 }
 
@@ -28,14 +27,24 @@ func New(file *os.File) (*Parser, error) {
 
 	return &Parser{
 		filepath: file_path,
-		file:     file,
 		lexer:    lexer.New(b),
 	}, nil
 }
 
 func (p *Parser) Parse() error {
-	fmt.Println(p.lexer.Text)
-	fmt.Println(strconv.Quote(string(p.lexer.Text)))
+
+	token, _ := p.lexer.GetNextToken()
+	fmt.Println("match:", strconv.Quote(string(token)))
+	token, _ = p.lexer.GetNextToken()
+	fmt.Println("match:", strconv.Quote(string(token)))
+	token, _ = p.lexer.GetNextToken()
+	fmt.Println("match:", strconv.Quote(string(token)))
+	token, _ = p.lexer.GetNextToken()
+	fmt.Println("match:", strconv.Quote(string(token)))
+	token, _ = p.lexer.GetNextToken()
+	fmt.Println("match:", strconv.Quote(string(token)))
+
+	// fmt.Println(lookahead)
 
 	return nil
 }
