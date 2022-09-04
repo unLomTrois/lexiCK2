@@ -7,6 +7,7 @@ import (
 )
 
 type CK2Parser struct {
+	Filepath  string  `json:"filepath"`
 	Namespace string  `json:"namespace"`
 	Depth     int     `json:"depth"`
 	Data      []*Node `json:"data"`
@@ -32,8 +33,10 @@ type Node struct {
 	Data []*Node `json:"data"`
 }
 
-func NewParser() *CK2Parser {
+func NewParser(file_path string) *CK2Parser {
+
 	return &CK2Parser{
+		Filepath:  file_path,
 		Namespace: "",
 		Depth:     0,
 		Data:      []*Node{},

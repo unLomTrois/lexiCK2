@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 )
 
 // var printwidth = 80
@@ -17,6 +18,11 @@ import (
 // }
 
 func Parse(f *os.File) error {
+	file_path, err := filepath.Abs(f.Name())
+	if err != nil {
+		return err
+	}
+
 	buf := &bytes.Buffer{}
 	tee := io.TeeReader(f, buf)
 
@@ -39,7 +45,7 @@ func Parse(f *os.File) error {
 	linenumber := 1
 	// depth := 0
 
-	parser := NewParser()
+	parser := NewParser(file_path)
 
 	for scanner.Scan() { // internally, it advances token based on sperator
 		text_bytes := scanner.Bytes()
@@ -57,11 +63,11 @@ func Parse(f *os.File) error {
 		if err != nil {
 			return err
 		}
+
 		// fmt.Printf("wrote %d bytes\n", n4)
 	}
-
 	aJSON, _ := json.MarshalIndent(parser, "", "  ")
-	fmt.Printf("JSON Print - \n%s\n", string(aJSON))
+	// fmt.Printf("JSON Print - \n%s\n", string(aJSON))
 	_ = os.WriteFile("tmp/simple.json", aJSON, 0644)
 	w.Flush()
 
