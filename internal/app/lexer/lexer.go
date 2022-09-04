@@ -1,8 +1,10 @@
 package lexer
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
+	"os"
 	"regexp"
 	"strconv"
 )
@@ -19,12 +21,24 @@ func NormalizeText(text []byte) []byte {
 	text = bytes.ReplaceAll(text, []byte(" = "), []byte("="))
 	text = bytes.ReplaceAll(text, []byte("= {"), []byte("={"))
 	text = bytes.ReplaceAll(text, []byte("="), []byte(" = "))
+
+	// replace \n\n\n.. with \n\n
+	reg := regexp.MustCompile(`\n{3,}`)
+	text = reg.ReplaceAll(text, []byte("\n\n"))
+
 	return text
 }
 
 func New(text []byte) *Lexer {
 	normalized := NormalizeText(text)
 	fmt.Println(strconv.Quote(string(normalized)))
+
+	new_file, _ := os.Create("./tmp/meta.txt")
+	defer new_file.Close()
+
+	w := bufio.NewWriter(new_file)
+	w.Write(normalized)
+	w.Flush()
 
 	return &Lexer{
 		Text:   normalized,
