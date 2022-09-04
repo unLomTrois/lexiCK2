@@ -1,3 +1,4 @@
-character_event = entity_keo
-entity_keo = 200
-character_event = 300
+# Comment
+character_event = { # INLINE COMMENT
+	id = 200
+}

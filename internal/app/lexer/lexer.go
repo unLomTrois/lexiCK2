@@ -2,7 +2,6 @@ package lexer
 
 import (
 	"regexp"
-	"unicode"
 )
 
 type Lexer struct {
@@ -25,32 +24,36 @@ func (l *Lexer) isEOF() bool {
 	return l.cursor == len(l.Text)
 }
 
-func (l *Lexer) GetNextToken() ([]byte, error) {
+func (l *Lexer) _match(reg *regexp.Regexp, text []byte) []byte {
+	if match := reg.Find(text); match != nil {
+		l.cursor += len(match)
+		return match
+	}
+	return nil
+}
+
+func (l *Lexer) GetNextToken() (*Token, error) {
 	if !l.hasMoreTokens() {
 		return nil, nil
 	}
 
 	_string := l.Text[l.cursor:]
 
-	if unicode.IsLetter(rune(_string[0])) {
-		reg, err := regexp.Compile(`^\w+`)
-		if err != nil {
-			return nil, err
+	for k, token_type := range Spec {
+		// fmt.Println("try:", k)
+		reg := regexp.MustCompile(k)
+		token_value := l._match(reg, _string)
+		if token_value == nil {
+			continue
 		}
-		match := reg.Find(_string)
-		l.cursor += len(match)
-		return match, nil
+		if token_type == NULL {
+			return l.GetNextToken()
+		}
+		return &Token{
+			Type:  token_type,
+			Value: token_value,
+		}, nil
 	}
 
-	if unicode.In(rune(_string[0]), unicode.Sm) {
-		l.cursor++
-		return []byte{_string[0]}, nil
-	}
-
-	if unicode.IsSpace(rune(_string[0])) {
-		l.cursor++
-		return []byte{' '}, nil
-	}
-
-	return _string, nil
+	panic("Unexpected token: " + string(_string[0]))
 }

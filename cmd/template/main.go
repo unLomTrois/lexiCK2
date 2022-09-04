@@ -25,6 +25,7 @@ func main() {
 
 	err = parser.Parse()
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
+		// log.Fatal(err)
 	}
 }
