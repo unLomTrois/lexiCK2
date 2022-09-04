@@ -9,7 +9,7 @@ import (
 type CK2Parser struct {
 	Filepath  string  `json:"filepath"`
 	Namespace string  `json:"namespace"`
-	Depth     int     `json:"depth"`
+	Level     int     `json:"level"`
 	Data      []*Node `json:"data"`
 	Scope     *Node   `json:"-"`
 	PrevScope *Node   `json:"-"`
@@ -25,7 +25,8 @@ const (
 
 type Node struct {
 	// element is either a Block or a Property
-	Type NodeType `json:"type"`
+	Type  NodeType `json:"type"`
+	Level int      `json:"level"`
 	// not nil if type is Property
 	Key   string `json:"key"`
 	Value string `json:"value"`
@@ -34,14 +35,51 @@ type Node struct {
 }
 
 func NewParser(file_path string) *CK2Parser {
-
 	return &CK2Parser{
 		Filepath:  file_path,
 		Namespace: "",
-		Depth:     0,
+		Level:     0,
 		Data:      []*Node{},
 		Scope:     nil,
 		PrevScope: nil,
+	}
+}
+
+func (parser *CK2Parser) InsertNode(node_type NodeType, key string, value string) {
+	switch node_type {
+	case Entity:
+		// enter into entity scope
+		if parser.Scope == nil {
+			parser.Data = append(parser.Data, &Node{
+				Type:  Entity,
+				Level: 0,
+				Key:   key,
+				Value: value,
+				Data:  []*Node{},
+			})
+			parser.Scope = parser.Data[len(parser.Data)-1]
+			parser.PrevScope = parser.Scope
+		}
+	case Block:
+		fmt.Println("enter into scope of:", strconv.Quote(key))
+		parser.Scope.Data = append(parser.Scope.Data, &Node{
+			Type:  Block,
+			Level: 0,
+			Key:   key,
+			Value: value,
+			Data:  []*Node{},
+		})
+		parser.Scope = parser.Scope.Data[len(parser.Scope.Data)-1]
+		fmt.Println("scope:", parser.Scope)
+	case Property:
+		parser.Scope.Data = append(parser.Scope.Data, &Node{
+			Type:  Property,
+			Level: 0,
+			Key:   key,
+			Value: value,
+			Data:  nil,
+		})
+		fmt.Println("property:", strconv.Quote(key), "value:", strconv.Quote(value))
 	}
 }
 
@@ -56,38 +94,16 @@ func (parser *CK2Parser) ParseLine(line []byte) []byte {
 		if parser.Scope == nil && parser.Namespace == "" {
 			parser.Namespace = string(value)
 		} else {
-			fmt.Println("ELSE")
 			if value[0] == byte('{') {
 				// enter into entity scope
 				if parser.Scope == nil {
-					parser.Data = append(parser.Data, &Node{
-						Type:  Entity,
-						Data:  []*Node{},
-						Key:   string(key),
-						Value: "",
-					})
-					parser.Scope = parser.Data[len(parser.Data)-1]
-					parser.PrevScope = parser.Scope
+					parser.InsertNode(Entity, string(key), string(value))
 				} else {
 					// enter another scope
-					fmt.Println("enter into scope of:", strconv.Quote(string(key)))
-					parser.Scope.Data = append(parser.Scope.Data, &Node{
-						Type:  Block,
-						Data:  []*Node{},
-						Key:   string(key),
-						Value: string(value),
-					})
-					parser.Scope = parser.Scope.Data[len(parser.Scope.Data)-1]
-					fmt.Println("scope:", parser.Scope)
+					parser.InsertNode(Block, string(key), string(value))
 				}
 			} else {
-				parser.Scope.Data = append(parser.Scope.Data, &Node{
-					Type:  Property,
-					Data:  nil,
-					Key:   string(key),
-					Value: string(value),
-				})
-				fmt.Println("property:", strconv.Quote(string(key)), "value:", strconv.Quote(string(value)))
+				parser.InsertNode(Property, string(key), string(value))
 			}
 		}
 	}
