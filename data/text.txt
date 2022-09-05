@@ -49,7 +49,7 @@ character_event = {
 	    	random_list = {
 	    		100 = { #Vassal offers to teach heir the scripture for a favor
 	    			random = {
-	    				chance = 75
+	    				chance = -75.5 
 						character_event = { id = ZE.22902 days = 10 random = 5 } #send event
 						set_character_flag = ZE_evt_heir_1
 	    			}					

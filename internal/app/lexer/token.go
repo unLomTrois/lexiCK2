@@ -21,15 +21,15 @@ const (
 )
 
 var Spec = map[string]TokenType{
-	`^#.+`:                     COMMENT,
-	`^"?\w+:?(\w+)?(\.\d+)?"?`: WORD,
-	`^\d+`:                     NUMBER,
-	`^ +`:                      NULL,
-	`^\n+`:                     NULL,
-	`^\t+`:                     NULL,
-	`^=`:                       EQUALS,
-	`^{`:                       START,
-	`^}`:                       END,
+	`^#.+`:                             COMMENT,
+	`^"?[a-zA-Z_]+:?(\w+)?(\.?\d+)?"?`: WORD,
+	`^-?\d+[\.,]?(\d?)+`:               NUMBER,
+	`^ +`:                              NULL,
+	`^\n+`:                             NULL,
+	`^\t+`:                             NULL,
+	`^=`:                               EQUALS,
+	`^{`:                               START,
+	`^}`:                               END,
 }
 
 type Token struct {

@@ -3,15 +3,15 @@ package lexer
 import (
 	"bufio"
 	"bytes"
-	"fmt"
 	"os"
 	"regexp"
 	"strconv"
 )
 
 type Lexer struct {
-	Text   []byte
-	cursor int
+	Text    []byte
+	cursor  int
+	_string []byte
 }
 
 func NormalizeText(text []byte) []byte {
@@ -31,7 +31,7 @@ func NormalizeText(text []byte) []byte {
 
 func New(text []byte) *Lexer {
 	normalized := NormalizeText(text)
-	fmt.Println(strconv.Quote(string(normalized)))
+	// fmt.Println(strconv.Quote(string(normalized)))
 
 	new_file, _ := os.Create("./tmp/meta.txt")
 	defer new_file.Close()
@@ -67,13 +67,13 @@ func (l *Lexer) GetNextToken() (*Token, error) {
 		return nil, nil
 	}
 
-	_string := l.Text[l.cursor:]
+	l._string = l.Text[l.cursor:]
 
 	for k, token_type := range Spec {
 		// todo: implement less greedy matching
 		// fmt.Println("try:", k)
 		reg := regexp.MustCompile(k)
-		token_value := l._match(reg, _string)
+		token_value := l._match(reg, l._string)
 		if token_value == nil {
 			// fmt.Println("continue")
 			continue
@@ -89,5 +89,5 @@ func (l *Lexer) GetNextToken() (*Token, error) {
 		}, nil
 	}
 
-	panic("Unexpected token: " + strconv.Quote(string(_string[0])))
+	panic("Unexpected token: " + strconv.Quote(string(l._string[0])))
 }

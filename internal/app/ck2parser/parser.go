@@ -59,7 +59,6 @@ func (p *Parser) Parse() error {
 
 	p.Data = p.StatementList()
 
-	// fmt.Println(statement[2].Expression.(*BinaryExpression).right)
 	json, err := json.MarshalIndent(p, "", " ")
 	if err != nil {
 		return err
@@ -99,11 +98,6 @@ func (p *Parser) StatementList(opt_stop_lookahead ...lexer.TokenType) []*Stateme
 
 func (p *Parser) Statement() *Statement {
 	switch p.lookahead.Type {
-	case lexer.START:
-		return &Statement{
-			Type: "BLOCK",
-			Data: "{",
-		}
 	case lexer.COMMENT:
 		return p.CommentStatement()
 	default:
@@ -127,7 +121,7 @@ func (p *Parser) ExpressionStatement() *Statement {
 
 type BinaryExpression struct {
 	Type     NodeType    `json:"type"`
-	Left     Literal     `json:"left"`
+	Left     interface{} `json:"left"`
 	Operator string      `json:"operator"`
 	Right    interface{} `json:"right"`
 }
@@ -138,7 +132,7 @@ func (p *Parser) Expression() *BinaryExpression {
 	var right interface{}
 
 	switch p.lookahead.Type {
-	case lexer.WORD:
+	case lexer.WORD, lexer.NUMBER:
 		right = p.Literal()
 		return &BinaryExpression{
 			Type:     Property,
@@ -169,25 +163,34 @@ func (p *Parser) BlockStatement() []*Statement {
 	}
 }
 
-type Literal string
-
-func (p *Parser) Literal() Literal {
+func (p *Parser) Literal() interface{} {
 	switch p.lookahead.Type {
 	case lexer.WORD:
 		return p.WordLiteral()
+	case lexer.NUMBER:
+		return p.NumberLiteral()
 	case lexer.COMMENT:
 		return p.CommentLiteral()
 	default:
-		panic("Unexpected Literal: " + strconv.Quote(string(p.lookahead.Value)))
+		panic("Unexpected Literal: " + strconv.Quote(string(p.lookahead.Value)) + ", with type of: " + string(p.lookahead.Type))
 	}
 }
 
-func (p *Parser) WordLiteral() Literal {
+func (p *Parser) WordLiteral() string {
 	token := p._eat(lexer.WORD)
-	return Literal(string(token.Value))
+	return string(token.Value)
 }
 
-func (p *Parser) CommentLiteral() Literal {
+func (p *Parser) NumberLiteral() float32 {
+	token := p._eat(lexer.NUMBER)
+	number, err := strconv.ParseFloat(string(token.Value), 32)
+	if err != nil {
+		panic("Unexpected NumberLiteral: " + strconv.Quote(string(token.Value)))
+	}
+	return float32(number)
+}
+
+func (p *Parser) CommentLiteral() string {
 	token := p._eat(lexer.COMMENT)
-	return Literal(string(token.Value))
+	return string(token.Value)
 }
