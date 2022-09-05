@@ -34,9 +34,7 @@ func main() {
 
 	// linting
 	linter := ck2parser.NewLinter(p.Filepath, p.Data)
-	linter.Lint(linter.Next())
-	linter.Lint(linter.Next())
-	linter.Lint(linter.Next())
+	linter.Lint()
 
 	w, err := os.Create("tmp/linted.txt")
 	if err != nil {

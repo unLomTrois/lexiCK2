@@ -1,7 +1,6 @@
 package ck2parser
 
 import (
-	"encoding/json"
 	"fmt"
 	"strconv"
 )
@@ -21,26 +20,42 @@ func NewLinter(file_path string, data []*Node) *Linter {
 	}
 }
 
-func (l *Linter) Lint(node *Node) {
-	fmt.Println(node)
+func (l *Linter) Lint() {
 
+	for _, node := range l.Data {
+		l.LintNode(node)
+	}
+
+	// l.LintNode()
+
+	fmt.Println("to write:", strconv.Quote(string(l.towrite)))
+	fmt.Println("bytes:", len(l.towrite))
+}
+
+func (l *Linter) LintNode(node *Node) {
+	fmt.Println("node", node)
 	if node.Type == Comment {
+		if len(l.towrite) > 0 && l.towrite[len(l.towrite)-1] != ' ' {
+			l.Intend()
+		}
+
 		l.towrite = append(l.towrite, []byte(node.Data.(string))...)
 		l.towrite = append(l.towrite, byte('\n'))
 	}
 	if node.Type == Property {
 		l.Intend()
-		l.towrite = append(l.towrite, []byte(node.Key.(string))...)
+		l.towrite = append(l.towrite, []byte(node.KeyLiteral())...)
 		l.towrite = append(l.towrite, byte(' '))
 		l.towrite = append(l.towrite, []byte(node.Operator)...)
 		l.towrite = append(l.towrite, byte(' '))
-		l.towrite = append(l.towrite, []byte(node.Data.(string))...)
+		l.towrite = append(l.towrite, []byte(node.DataLiteral())...)
 		l.towrite = append(l.towrite, byte('\n'))
 	}
 	if node.Type == Block {
+		l.Intend()
 		l.Level++
 
-		l.towrite = append(l.towrite, []byte(node.Key.(string))...)
+		l.towrite = append(l.towrite, []byte(node.KeyLiteral())...)
 		l.towrite = append(l.towrite, byte(' '))
 		l.towrite = append(l.towrite, []byte(node.Operator)...)
 		l.towrite = append(l.towrite, byte(' '))
@@ -50,27 +65,23 @@ func (l *Linter) Lint(node *Node) {
 			l.towrite = append(l.towrite, byte(' '))
 		} else {
 			l.towrite = append(l.towrite, byte('\n'))
-			l.Intend()
 		}
 
-		// iterate over children
-		child1 := node.Data.([]*Node)[0]
-		child2 := node.Data.([]*Node)[1]
-		// fmt.Println("child1", child1)
-		// fmt.Println("child2", child2)
-		l.Lint(child1)
-		l.Lint(child2)
-		l.Lint(node.Data.([]*Node)[2])
+		for _, c := range node.Data.([]*Node) {
+			// fmt.Println(c)
+
+			l.LintNode(c)
+		}
 
 		l.Level--
+		l.Intend()
 		l.towrite = append(l.towrite, byte('}'))
+		l.towrite = append(l.towrite, byte('\n'))
 
-		json, _ := json.MarshalIndent(node.Data, "", " ")
-		fmt.Println(string(json))
+		// json, _ := json.MarshalIndent(node.Data, "", " ")
+		// fmt.Println(string(json))
 
 	}
-	fmt.Println("to write:", strconv.Quote(string(l.towrite)))
-	fmt.Println("bytes:", len(l.towrite))
 }
 
 func (l *Linter) Intend() {

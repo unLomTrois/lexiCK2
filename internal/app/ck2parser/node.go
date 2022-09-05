@@ -18,3 +18,15 @@ type Node struct {
 	Operator string      `json:"operator,omitempty"`
 	Data     interface{} `json:"value,omitempty"`
 }
+
+func (n *Node) Node() *Node {
+	return n.Data.(*Node)
+}
+
+func (n *Node) KeyLiteral() string {
+	return n.Key.(string)
+}
+
+func (n *Node) DataLiteral() string {
+	return n.Data.(string)
+}
