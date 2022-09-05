@@ -20,7 +20,6 @@ func NormalizeText(text []byte) []byte {
 	text = bytes.ReplaceAll(text, []byte("\t\n"), []byte("\n"))
 	text = bytes.ReplaceAll(text, []byte(" = "), []byte("="))
 	text = bytes.ReplaceAll(text, []byte("= {"), []byte("={"))
-	text = bytes.ReplaceAll(text, []byte("="), []byte(" = "))
 
 	// replace \n\n\n.. with \n\n
 	reg := regexp.MustCompile(`\n{3,}`)
@@ -71,7 +70,7 @@ func (l *Lexer) GetNextToken() (*Token, error) {
 
 	for k, token_type := range Spec {
 		// todo: implement less greedy matching
-		// fmt.Println("try:", k)
+		// fmt.Println("try:", k, "on: ", string(l._string[0:10]))
 		reg := regexp.MustCompile(k)
 		token_value := l._match(reg, l._string)
 		if token_value == nil {
@@ -89,5 +88,5 @@ func (l *Lexer) GetNextToken() (*Token, error) {
 		}, nil
 	}
 
-	panic("Unexpected token: " + strconv.Quote(string(l._string[0])))
+	panic("[Lexer] Unexpected token: " + strconv.Quote(string(l._string[0])))
 }

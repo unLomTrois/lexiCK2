@@ -18,16 +18,18 @@ const (
 	EQUALS     TokenType = "EQUALS"
 	START      TokenType = "START"
 	END        TokenType = "END"
+	COMPARISON TokenType = "COMPARISON"
 )
 
 var Spec = map[string]TokenType{
+	`^[\<\>]=?`:                        COMPARISON,
 	`^#.+`:                             COMMENT,
 	`^"?[a-zA-Z_]+:?(\w+)?(\.?\d+)?"?`: WORD,
 	`^-?\d+[\.,]?(\d?)+`:               NUMBER,
 	`^ +`:                              NULL,
 	`^\n+`:                             NULL,
 	`^\t+`:                             NULL,
-	`^=`:                               EQUALS,
+	`^==?`:                             EQUALS,
 	`^{`:                               START,
 	`^}`:                               END,
 }

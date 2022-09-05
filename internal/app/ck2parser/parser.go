@@ -40,10 +40,10 @@ func New(file *os.File) (*Parser, error) {
 func (p *Parser) _eat(tokentype lexer.TokenType) *lexer.Token {
 	token := p.lookahead
 	if token == nil {
-		panic("Unexpected end of input, expected: " + string(tokentype))
+		panic("[Parser] Unexpected end of input, expected: " + string(tokentype))
 	}
 	if token.Type != tokentype {
-		panic("Unexpected token: \"" + string(token.Value) + "\" with type of " + string(token.Type) + ", expected type: " + string(tokentype))
+		panic("[Parser] Unexpected token: \"" + string(token.Value) + "\" with type of " + string(token.Type) + ", expected type: " + string(tokentype))
 	}
 
 	var err error
@@ -59,15 +59,15 @@ func (p *Parser) Parse() error {
 
 	p.Data = p.StatementList()
 
-	json, err := json.MarshalIndent(p, "", " ")
-	if err != nil {
-		return err
-	}
 	w, err := os.Create("tmp/meta.json")
 	if err != nil {
 		return err
 	}
-	w.Write(json)
+	enc := json.NewEncoder(w)
+	enc.SetEscapeHTML(false)
+	enc.SetIndent("", " ")
+
+	enc.Encode(p)
 
 	return nil
 }
@@ -121,32 +121,50 @@ func (p *Parser) ExpressionStatement() *Statement {
 
 type BinaryExpression struct {
 	Type     NodeType    `json:"type"`
-	Left     interface{} `json:"left"`
-	Operator string      `json:"operator"`
-	Right    interface{} `json:"right"`
+	Key      interface{} `json:"key"`
+	Operator string      `json:"operator,omitempty"`
+	Value    interface{} `json:"value"`
 }
 
 func (p *Parser) Expression() *BinaryExpression {
-	left := p.Literal()
-	operator := p._eat(lexer.EQUALS)
-	var right interface{}
+	key := p.Literal()
+
+	var _type NodeType
+	var _operator *lexer.Token
+	var _opvalue string
+	switch p.lookahead.Type {
+	case lexer.EQUALS:
+		_operator = p._eat(lexer.EQUALS)
+		if string(_operator.Value) == "==" {
+			_type = Comparison
+			_opvalue = string(_operator.Value)
+		} else {
+			_type = Property
+		}
+		_operator = nil
+	case lexer.COMPARISON:
+		_operator = p._eat(lexer.COMPARISON)
+		_type = Comparison
+		_opvalue = string(_operator.Value)
+	}
+
+	var value interface{}
 
 	switch p.lookahead.Type {
 	case lexer.WORD, lexer.NUMBER:
-		right = p.Literal()
+		value = p.Literal()
 		return &BinaryExpression{
-			Type:     Property,
-			Left:     left,
-			Operator: string(operator.Value),
-			Right:    right,
+			Type:     _type,
+			Key:      key,
+			Operator: _opvalue,
+			Value:    value,
 		}
 	case lexer.START:
-		right = p.BlockStatement()
+		value = p.BlockStatement()
 		return &BinaryExpression{
-			Type:     Block,
-			Left:     left,
-			Operator: string(operator.Value),
-			Right:    right,
+			Type:  Block,
+			Key:   key,
+			Value: value,
 		}
 	default:
 		return nil
@@ -172,7 +190,7 @@ func (p *Parser) Literal() interface{} {
 	case lexer.COMMENT:
 		return p.CommentLiteral()
 	default:
-		panic("Unexpected Literal: " + strconv.Quote(string(p.lookahead.Value)) + ", with type of: " + string(p.lookahead.Type))
+		panic("[Parser] Unexpected Literal: " + strconv.Quote(string(p.lookahead.Value)) + ", with type of: " + string(p.lookahead.Type))
 	}
 }
 
@@ -185,7 +203,7 @@ func (p *Parser) NumberLiteral() float32 {
 	token := p._eat(lexer.NUMBER)
 	number, err := strconv.ParseFloat(string(token.Value), 32)
 	if err != nil {
-		panic("Unexpected NumberLiteral: " + strconv.Quote(string(token.Value)))
+		panic("[Parser] Unexpected NumberLiteral: " + strconv.Quote(string(token.Value)))
 	}
 	return float32(number)
 }

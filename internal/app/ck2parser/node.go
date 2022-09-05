@@ -3,12 +3,13 @@ package ck2parser
 type NodeType string
 
 const (
-	Root     NodeType = "Root"
-	NextLine NodeType = "NextLine"
-	Comment  NodeType = "Comment"
-	Entity   NodeType = "Entity"
-	Block    NodeType = "BlockStatement"
-	Property NodeType = "Property"
+	Root       NodeType = "Root"
+	NextLine   NodeType = "NextLine"
+	Comment    NodeType = "Comment"
+	Entity     NodeType = "Entity"
+	Block      NodeType = "BlockStatement"
+	Property   NodeType = "Property"
+	Comparison NodeType = "Comparison"
 )
 
 type RootNode struct {

@@ -8,7 +8,7 @@ import (
 
 func main() {
 
-	file, err := os.Open("data/text.txt")
+	file, err := os.Open("data/avatar.txt")
 	if err != nil {
 		log.Fatal(err)
 	}

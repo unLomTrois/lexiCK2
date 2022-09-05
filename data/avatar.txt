@@ -7,6 +7,9 @@ character_event = { # START DUEL - Event Handler - Current Scope: Challenged
 	
 	option = { # Duel: Firebender v Firebender
 		trigger = {
+			ai_greed <= 5
+			ai_greed >= 5
+			ai_greed == 5
 			trait = firebender
 			FROMFROM = {
 				trait = firebender
