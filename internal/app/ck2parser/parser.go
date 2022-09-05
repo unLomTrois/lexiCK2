@@ -10,9 +10,10 @@ import (
 )
 
 type Parser struct {
-	filepath  string
-	lexer     *lexer.Lexer
-	lookahead *lexer.Token
+	Filepath  string       `json:"filepath"`
+	lexer     *lexer.Lexer `json:"-"`
+	lookahead *lexer.Token `json:"-"`
+	Data      []*Statement `json:"data"`
 }
 
 func New(file *os.File) (*Parser, error) {
@@ -29,9 +30,10 @@ func New(file *os.File) (*Parser, error) {
 	lexer := lexer.New(b)
 
 	return &Parser{
-		filepath:  file_path,
+		Filepath:  file_path,
 		lexer:     lexer,
 		lookahead: nil,
+		Data:      nil,
 	}, nil
 }
 
@@ -55,9 +57,10 @@ func (p *Parser) _eat(tokentype lexer.TokenType) *lexer.Token {
 func (p *Parser) Parse() error {
 	p.lookahead, _ = p.lexer.GetNextToken()
 
-	statement := p.StatementList()
+	p.Data = p.StatementList()
+
 	// fmt.Println(statement[2].Expression.(*BinaryExpression).right)
-	json, err := json.MarshalIndent(statement, "", " ")
+	json, err := json.MarshalIndent(p, "", " ")
 	if err != nil {
 		return err
 	}
@@ -71,8 +74,8 @@ func (p *Parser) Parse() error {
 }
 
 type Statement struct {
-	Type       string      `json:"type"`
-	Expression interface{} `json:"expr"`
+	Type string      `json:"type"`
+	Data interface{} `json:"data"`
 }
 
 func (p *Parser) StatementList(opt_stop_lookahead ...lexer.TokenType) []*Statement {
@@ -98,8 +101,8 @@ func (p *Parser) Statement() *Statement {
 	switch p.lookahead.Type {
 	case lexer.START:
 		return &Statement{
-			Type:       "BLOCK",
-			Expression: "{",
+			Type: "BLOCK",
+			Data: "{",
 		}
 	case lexer.COMMENT:
 		return p.CommentStatement()
@@ -110,20 +113,20 @@ func (p *Parser) Statement() *Statement {
 
 func (p *Parser) CommentStatement() *Statement {
 	return &Statement{
-		Type:       "CommentStatement",
-		Expression: p.CommentLiteral(),
+		Type: "CommentStatement",
+		Data: p.CommentLiteral(),
 	}
 }
 
 func (p *Parser) ExpressionStatement() *Statement {
 	return &Statement{
-		Type:       "ExpressionStatement",
-		Expression: p.EquationExpression(),
+		Type: "ExpressionStatement",
+		Data: p.EquationExpression(),
 	}
 }
 
 type BinaryExpression struct {
-	Left     *Literal    `json:"left"`
+	Left     Literal     `json:"left"`
 	Operator string      `json:"operator"`
 	Right    interface{} `json:"right"`
 }
@@ -131,7 +134,6 @@ type BinaryExpression struct {
 func (p *Parser) EquationExpression() *BinaryExpression {
 	left := p.Literal()
 	operator := p._eat(lexer.EQUALS)
-
 	var right interface{}
 
 	switch p.lookahead.Type {
@@ -143,11 +145,11 @@ func (p *Parser) EquationExpression() *BinaryExpression {
 			Right:    right,
 		}
 	case lexer.START:
+		right = p.BlockStatement()
 		return &BinaryExpression{
 			Left:     left,
 			Operator: string(operator.Value),
-			// !!!todo:!!! add block statement
-			Right: p.BlockStatement(),
+			Right:    right,
 		}
 	default:
 		return nil
@@ -164,12 +166,9 @@ func (p *Parser) BlockStatement() []*Statement {
 	}
 }
 
-type Literal struct {
-	Type  string
-	Value string
-}
+type Literal string
 
-func (p *Parser) Literal() *Literal {
+func (p *Parser) Literal() Literal {
 	switch p.lookahead.Type {
 	case lexer.WORD:
 		return p.WordLiteral()
@@ -180,18 +179,12 @@ func (p *Parser) Literal() *Literal {
 	}
 }
 
-func (p *Parser) WordLiteral() *Literal {
+func (p *Parser) WordLiteral() Literal {
 	token := p._eat(lexer.WORD)
-	return &Literal{
-		Type:  "WordLiteral",
-		Value: string(token.Value),
-	}
+	return Literal(string(token.Value))
 }
 
-func (p *Parser) CommentLiteral() *Literal {
+func (p *Parser) CommentLiteral() Literal {
 	token := p._eat(lexer.COMMENT)
-	return &Literal{
-		Type:  "CommentLiteral",
-		Value: string(token.Value),
-	}
+	return Literal(string(token.Value))
 }
