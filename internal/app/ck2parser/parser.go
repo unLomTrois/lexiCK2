@@ -13,7 +13,7 @@ type Parser struct {
 	Filepath  string       `json:"filepath"`
 	lexer     *lexer.Lexer `json:"-"`
 	lookahead *lexer.Token `json:"-"`
-	Data      []*Statement `json:"data"`
+	Data      []*Node      `json:"data"`
 }
 
 func New(file *os.File) (*Parser, error) {
@@ -55,13 +55,8 @@ func (p *Parser) Parse() error {
 	return nil
 }
 
-type Statement struct {
-	Type string      `json:"type"`
-	Data interface{} `json:"data"`
-}
-
-func (p *Parser) StatementList(opt_stop_lookahead ...lexer.TokenType) []*Statement {
-	list := make([]*Statement, 0)
+func (p *Parser) StatementList(opt_stop_lookahead ...lexer.TokenType) []*Node {
+	list := make([]*Node, 0)
 
 	for {
 		if p.lookahead == nil {
@@ -79,7 +74,7 @@ func (p *Parser) StatementList(opt_stop_lookahead ...lexer.TokenType) []*Stateme
 	return list
 }
 
-func (p *Parser) Statement() *Statement {
+func (p *Parser) Statement() *Node {
 	switch p.lookahead.Type {
 	case lexer.COMMENT:
 		return p.CommentStatement()
@@ -88,28 +83,18 @@ func (p *Parser) Statement() *Statement {
 	}
 }
 
-func (p *Parser) CommentStatement() *Statement {
-	return &Statement{
-		Type: "CommentStatement",
+func (p *Parser) CommentStatement() *Node {
+	return &Node{
+		Type: Comment,
 		Data: p.CommentLiteral(),
 	}
 }
 
-func (p *Parser) ExpressionStatement() *Statement {
-	return &Statement{
-		Type: "ExpressionStatement",
-		Data: p.Expression(),
-	}
+func (p *Parser) ExpressionStatement() *Node {
+	return p.Expression()
 }
 
-type BinaryExpression struct {
-	Type     NodeType    `json:"type"`
-	Key      interface{} `json:"key"`
-	Operator string      `json:"operator,omitempty"`
-	Value    interface{} `json:"value"`
-}
-
-func (p *Parser) Expression() *BinaryExpression {
+func (p *Parser) Expression() *Node {
 	key := p.Literal()
 
 	var _type NodeType
@@ -120,11 +105,10 @@ func (p *Parser) Expression() *BinaryExpression {
 		_operator = p._eat(lexer.EQUALS)
 		if string(_operator.Value) == "==" {
 			_type = Comparison
-			_opvalue = string(_operator.Value)
 		} else {
 			_type = Property
 		}
-		_operator = nil
+		_opvalue = string(_operator.Value)
 	case lexer.COMPARISON:
 		_operator = p._eat(lexer.COMPARISON)
 		_type = Comparison
@@ -136,25 +120,26 @@ func (p *Parser) Expression() *BinaryExpression {
 	switch p.lookahead.Type {
 	case lexer.WORD, lexer.NUMBER:
 		value = p.Literal()
-		return &BinaryExpression{
+		return &Node{
 			Type:     _type,
 			Key:      key,
 			Operator: _opvalue,
-			Value:    value,
+			Data:     value,
 		}
 	case lexer.START:
 		value = p.BlockStatement()
-		return &BinaryExpression{
-			Type:  Block,
-			Key:   key,
-			Value: value,
+		return &Node{
+			Type:     Block,
+			Key:      key,
+			Operator: _opvalue,
+			Data:     value,
 		}
 	default:
 		return nil
 	}
 }
 
-func (p *Parser) BlockStatement() []*Statement {
+func (p *Parser) BlockStatement() []*Node {
 	p._eat(lexer.START)
 
 	if p.lookahead.Type == lexer.END {
