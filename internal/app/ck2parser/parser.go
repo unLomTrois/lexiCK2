@@ -2,7 +2,7 @@ package ck2parser
 
 import (
 	"ck2-parser/internal/app/lexer"
-	"fmt"
+	"encoding/json"
 	"io"
 	"os"
 	"path/filepath"
@@ -56,36 +56,45 @@ func (p *Parser) Parse() error {
 	p.lookahead, _ = p.lexer.GetNextToken()
 
 	statement := p.StatementList()
-	fmt.Printf("statement: %v\n", statement)
-	// lit := p.Literal()
-	// fmt.Println(lit)
-	// lit = p.Literal()
-	// fmt.Println(lit)
-	// lit = p.Literal()
-	// fmt.Println(lit)
+	// fmt.Println(statement[2].Expression.(*BinaryExpression).right)
+	json, err := json.MarshalIndent(statement, "", " ")
+	if err != nil {
+		return err
+	}
+	w, err := os.Create("tmp/meta.json")
+	if err != nil {
+		return err
+	}
+	w.Write(json)
 
 	return nil
 }
 
 type Statement struct {
-	Type       string
-	Expression interface{}
+	Type       string      `json:"type"`
+	Expression interface{} `json:"expr"`
 }
 
-func (p *Parser) StatementList() []*Statement {
+func (p *Parser) StatementList(opt_stop_lookahead ...lexer.TokenType) []*Statement {
 	list := make([]*Statement, 0)
 
 	for {
 		if p.lookahead == nil {
 			break
 		}
-		list = append(list, p.Statement().(*Statement))
+		if len(opt_stop_lookahead) > 0 && p.lookahead.Type == opt_stop_lookahead[0] {
+			p._eat(lexer.END)
+			break
+		}
+
+		newitem := p.Statement()
+		list = append(list, newitem)
 	}
 
 	return list
 }
 
-func (p *Parser) Statement() interface{} {
+func (p *Parser) Statement() *Statement {
 	switch p.lookahead.Type {
 	case lexer.START:
 		return &Statement{
@@ -99,25 +108,24 @@ func (p *Parser) Statement() interface{} {
 	}
 }
 
-func (p *Parser) CommentStatement() interface{} {
+func (p *Parser) CommentStatement() *Statement {
 	return &Statement{
 		Type:       "CommentStatement",
 		Expression: p.CommentLiteral(),
 	}
 }
 
-func (p *Parser) ExpressionStatement() interface{} {
-	b := p.EquationExpression()
+func (p *Parser) ExpressionStatement() *Statement {
 	return &Statement{
 		Type:       "ExpressionStatement",
-		Expression: b,
+		Expression: p.EquationExpression(),
 	}
 }
 
 type BinaryExpression struct {
-	left     *Literal
-	operator string
-	right    interface{}
+	Left     *Literal    `json:"left"`
+	Operator string      `json:"operator"`
+	Right    interface{} `json:"right"`
 }
 
 func (p *Parser) EquationExpression() *BinaryExpression {
@@ -130,20 +138,29 @@ func (p *Parser) EquationExpression() *BinaryExpression {
 	case lexer.WORD:
 		right = p.Literal()
 		return &BinaryExpression{
-			left:     left,
-			operator: string(operator.Value),
-			right:    right,
+			Left:     left,
+			Operator: string(operator.Value),
+			Right:    right,
 		}
 	case lexer.START:
-		right = p._eat(lexer.START)
 		return &BinaryExpression{
-			left:     left,
-			operator: string(operator.Value),
+			Left:     left,
+			Operator: string(operator.Value),
 			// !!!todo:!!! add block statement
-			right: right,
+			Right: p.BlockStatement(),
 		}
 	default:
 		return nil
+	}
+}
+
+func (p *Parser) BlockStatement() []*Statement {
+	p._eat(lexer.START)
+
+	if p.lookahead.Type == lexer.END {
+		return nil
+	} else {
+		return p.StatementList(lexer.END)
 	}
 }
 
