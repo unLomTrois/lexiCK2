@@ -2,7 +2,6 @@ package ck2parser
 
 import (
 	"ck2-parser/internal/app/lexer"
-	"encoding/json"
 	"io"
 	"os"
 	"path/filepath"
@@ -37,22 +36,12 @@ func New(file *os.File) (*Parser, error) {
 	}, nil
 }
 
-func (p *Parser) Parse() error {
+func (p *Parser) Parse() (*Parser, error) {
 	p.lookahead, _ = p.lexer.GetNextToken()
 
 	p.Data = p.NodeList()
 
-	w, err := os.Create("tmp/meta.json")
-	if err != nil {
-		return err
-	}
-	enc := json.NewEncoder(w)
-	enc.SetEscapeHTML(false)
-	enc.SetIndent("", " ")
-
-	enc.Encode(p)
-
-	return nil
+	return p, nil
 }
 
 func (p *Parser) NodeList(opt_stop_lookahead ...lexer.TokenType) []*Node {

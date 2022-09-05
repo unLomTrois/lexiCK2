@@ -1,7 +1,8 @@
 # Comment
 namespace = avatar
-character_event = { # INLINE COMMENT
-	id = avatar.100
+character_event = 
+{ 
+			# INLINE COMMENT
+id = avatar.100		
 
-	desc = avatar.200
-}
+desc = avatar.200	}					

@@ -2,13 +2,15 @@ package main
 
 import (
 	ck2parser "ck2-parser/internal/app/ck2parser"
+	"encoding/json"
 	"log"
 	"os"
 )
 
 func main() {
+	// start := time.Now()
 
-	file, err := os.Open("data/avatar.txt")
+	file, err := os.Open("data/elementary.txt")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -23,9 +25,37 @@ func main() {
 		log.Fatal(err)
 	}
 
-	err = parser.Parse()
+	// parsing
+	p, err := parser.Parse()
 	if err != nil {
 		panic(err)
-		// log.Fatal(err)
 	}
+	Save(p, "parsed.json")
+
+	// linting
+	linter := ck2parser.NewLinter(p.Filepath, p.Data)
+	linter.Lint(linter.Next())
+	linter.Lint(linter.Next())
+	linter.Lint(linter.Next())
+
+	w, err := os.Create("tmp/linted.txt")
+	if err != nil {
+		panic(err)
+	}
+	w.Write(linter.LintedData())
+
+	// elapsed := time.Since(start)
+	// log.Println("Saving took", elapsed.Seconds())
+}
+
+func Save(p any, filename string) error {
+	w, err := os.Create("tmp/" + filename)
+	if err != nil {
+		panic(err)
+	}
+	enc := json.NewEncoder(w)
+	enc.SetEscapeHTML(false)
+	enc.SetIndent("", " ")
+	enc.Encode(p)
+	return nil
 }

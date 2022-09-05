@@ -15,9 +15,11 @@ type Lexer struct {
 }
 
 func NormalizeText(text []byte) []byte {
+
 	text = bytes.TrimSpace(text)
 	text = bytes.ReplaceAll(text, []byte("\r\n"), []byte("\n"))
 	text = bytes.ReplaceAll(text, []byte("\t\n"), []byte("\n"))
+	text = bytes.ReplaceAll(text, []byte("\t"), []byte(""))
 	text = bytes.ReplaceAll(text, []byte(" = "), []byte("="))
 	text = bytes.ReplaceAll(text, []byte("= {"), []byte("={"))
 
@@ -32,7 +34,7 @@ func New(text []byte) *Lexer {
 	normalized := NormalizeText(text)
 	// fmt.Println(strconv.Quote(string(normalized)))
 
-	new_file, _ := os.Create("./tmp/meta.txt")
+	new_file, _ := os.Create("./tmp/normalized.txt")
 	defer new_file.Close()
 
 	w := bufio.NewWriter(new_file)
