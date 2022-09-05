@@ -37,23 +37,6 @@ func New(file *os.File) (*Parser, error) {
 	}, nil
 }
 
-func (p *Parser) _eat(tokentype lexer.TokenType) *lexer.Token {
-	token := p.lookahead
-	if token == nil {
-		panic("[Parser] Unexpected end of input, expected: " + string(tokentype))
-	}
-	if token.Type != tokentype {
-		panic("[Parser] Unexpected token: \"" + string(token.Value) + "\" with type of " + string(token.Type) + ", expected type: " + string(tokentype))
-	}
-
-	var err error
-	p.lookahead, err = p.lexer.GetNextToken()
-	if err != nil {
-		panic(err)
-	}
-	return token
-}
-
 func (p *Parser) Parse() error {
 	p.lookahead, _ = p.lexer.GetNextToken()
 
@@ -211,4 +194,21 @@ func (p *Parser) NumberLiteral() float32 {
 func (p *Parser) CommentLiteral() string {
 	token := p._eat(lexer.COMMENT)
 	return string(token.Value)
+}
+
+func (p *Parser) _eat(tokentype lexer.TokenType) *lexer.Token {
+	token := p.lookahead
+	if token == nil {
+		panic("[Parser] Unexpected end of input, expected: " + string(tokentype))
+	}
+	if token.Type != tokentype {
+		panic("[Parser] Unexpected token: \"" + string(token.Value) + "\" with type of " + string(token.Type) + ", expected type: " + string(tokentype))
+	}
+
+	var err error
+	p.lookahead, err = p.lexer.GetNextToken()
+	if err != nil {
+		panic(err)
+	}
+	return token
 }
