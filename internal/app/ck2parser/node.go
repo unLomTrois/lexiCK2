@@ -7,7 +7,7 @@ const (
 	NextLine NodeType = "NextLine"
 	Comment  NodeType = "Comment"
 	Entity   NodeType = "Entity"
-	Block    NodeType = "Block"
+	Block    NodeType = "BlockStatement"
 	Property NodeType = "Property"
 )
 

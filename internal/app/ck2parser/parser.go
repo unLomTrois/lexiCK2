@@ -121,17 +121,18 @@ func (p *Parser) CommentStatement() *Statement {
 func (p *Parser) ExpressionStatement() *Statement {
 	return &Statement{
 		Type: "ExpressionStatement",
-		Data: p.EquationExpression(),
+		Data: p.Expression(),
 	}
 }
 
 type BinaryExpression struct {
+	Type     NodeType    `json:"type"`
 	Left     Literal     `json:"left"`
 	Operator string      `json:"operator"`
 	Right    interface{} `json:"right"`
 }
 
-func (p *Parser) EquationExpression() *BinaryExpression {
+func (p *Parser) Expression() *BinaryExpression {
 	left := p.Literal()
 	operator := p._eat(lexer.EQUALS)
 	var right interface{}
@@ -140,6 +141,7 @@ func (p *Parser) EquationExpression() *BinaryExpression {
 	case lexer.WORD:
 		right = p.Literal()
 		return &BinaryExpression{
+			Type:     Property,
 			Left:     left,
 			Operator: string(operator.Value),
 			Right:    right,
@@ -147,6 +149,7 @@ func (p *Parser) EquationExpression() *BinaryExpression {
 	case lexer.START:
 		right = p.BlockStatement()
 		return &BinaryExpression{
+			Type:     Block,
 			Left:     left,
 			Operator: string(operator.Value),
 			Right:    right,
