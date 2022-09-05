@@ -40,7 +40,7 @@ func New(file *os.File) (*Parser, error) {
 func (p *Parser) Parse() error {
 	p.lookahead, _ = p.lexer.GetNextToken()
 
-	p.Data = p.StatementList()
+	p.Data = p.NodeList()
 
 	w, err := os.Create("tmp/meta.json")
 	if err != nil {
@@ -55,8 +55,8 @@ func (p *Parser) Parse() error {
 	return nil
 }
 
-func (p *Parser) StatementList(opt_stop_lookahead ...lexer.TokenType) []*Node {
-	list := make([]*Node, 0)
+func (p *Parser) NodeList(opt_stop_lookahead ...lexer.TokenType) []*Node {
+	nodes := make([]*Node, 0)
 
 	for {
 		if p.lookahead == nil {
@@ -67,34 +67,30 @@ func (p *Parser) StatementList(opt_stop_lookahead ...lexer.TokenType) []*Node {
 			break
 		}
 
-		newitem := p.Statement()
-		list = append(list, newitem)
+		new_node := p.Node()
+		nodes = append(nodes, new_node)
 	}
 
-	return list
+	return nodes
 }
 
-func (p *Parser) Statement() *Node {
+func (p *Parser) Node() *Node {
 	switch p.lookahead.Type {
 	case lexer.COMMENT:
-		return p.CommentStatement()
+		return p.CommentNode()
 	default:
-		return p.ExpressionStatement()
+		return p.ExpressionNode()
 	}
 }
 
-func (p *Parser) CommentStatement() *Node {
+func (p *Parser) CommentNode() *Node {
 	return &Node{
 		Type: Comment,
 		Data: p.CommentLiteral(),
 	}
 }
 
-func (p *Parser) ExpressionStatement() *Node {
-	return p.Expression()
-}
-
-func (p *Parser) Expression() *Node {
+func (p *Parser) ExpressionNode() *Node {
 	key := p.Literal()
 
 	var _type NodeType
@@ -127,7 +123,7 @@ func (p *Parser) Expression() *Node {
 			Data:     value,
 		}
 	case lexer.START:
-		value = p.BlockStatement()
+		value = p.BlockNode()
 		return &Node{
 			Type:     Block,
 			Key:      key,
@@ -139,13 +135,13 @@ func (p *Parser) Expression() *Node {
 	}
 }
 
-func (p *Parser) BlockStatement() []*Node {
+func (p *Parser) BlockNode() []*Node {
 	p._eat(lexer.START)
 
 	if p.lookahead.Type == lexer.END {
 		return nil
 	} else {
-		return p.StatementList(lexer.END)
+		return p.NodeList(lexer.END)
 	}
 }
 
