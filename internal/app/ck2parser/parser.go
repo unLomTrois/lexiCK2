@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strconv"
 )
 
 type Parser struct {
@@ -54,14 +55,96 @@ func (p *Parser) _eat(tokentype lexer.TokenType) *lexer.Token {
 func (p *Parser) Parse() error {
 	p.lookahead, _ = p.lexer.GetNextToken()
 
-	lit := p.Literal()
-	fmt.Println(lit)
-	lit = p.Literal()
-	fmt.Println(lit)
-	lit = p.Literal()
-	fmt.Println(lit)
+	statement := p.StatementList()
+	fmt.Printf("statement: %v\n", statement)
+	// lit := p.Literal()
+	// fmt.Println(lit)
+	// lit = p.Literal()
+	// fmt.Println(lit)
+	// lit = p.Literal()
+	// fmt.Println(lit)
 
 	return nil
+}
+
+type Statement struct {
+	Type       string
+	Expression interface{}
+}
+
+func (p *Parser) StatementList() []*Statement {
+	list := make([]*Statement, 0)
+
+	for {
+		if p.lookahead == nil {
+			break
+		}
+		list = append(list, p.Statement().(*Statement))
+	}
+
+	return list
+}
+
+func (p *Parser) Statement() interface{} {
+	switch p.lookahead.Type {
+	case lexer.START:
+		return &Statement{
+			Type:       "BLOCK",
+			Expression: "{",
+		}
+	case lexer.COMMENT:
+		return p.CommentStatement()
+	default:
+		return p.ExpressionStatement()
+	}
+}
+
+func (p *Parser) CommentStatement() interface{} {
+	return &Statement{
+		Type:       "CommentStatement",
+		Expression: p.CommentLiteral(),
+	}
+}
+
+func (p *Parser) ExpressionStatement() interface{} {
+	b := p.EquationExpression()
+	return &Statement{
+		Type:       "ExpressionStatement",
+		Expression: b,
+	}
+}
+
+type BinaryExpression struct {
+	left     *Literal
+	operator string
+	right    interface{}
+}
+
+func (p *Parser) EquationExpression() *BinaryExpression {
+	left := p.Literal()
+	operator := p._eat(lexer.EQUALS)
+
+	var right interface{}
+
+	switch p.lookahead.Type {
+	case lexer.WORD:
+		right = p.Literal()
+		return &BinaryExpression{
+			left:     left,
+			operator: string(operator.Value),
+			right:    right,
+		}
+	case lexer.START:
+		right = p._eat(lexer.START)
+		return &BinaryExpression{
+			left:     left,
+			operator: string(operator.Value),
+			// !!!todo:!!! add block statement
+			right: right,
+		}
+	default:
+		return nil
+	}
 }
 
 type Literal struct {
@@ -75,11 +158,8 @@ func (p *Parser) Literal() *Literal {
 		return p.WordLiteral()
 	case lexer.COMMENT:
 		return p.CommentLiteral()
-	case lexer.EQUALS:
-		fmt.Println(p.lookahead)
-		return nil
 	default:
-		panic("Literal: unexpected literal production")
+		panic("Unexpected Literal: " + strconv.Quote(string(p.lookahead.Value)))
 	}
 }
 
