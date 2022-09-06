@@ -10,7 +10,7 @@ import (
 func main() {
 	// start := time.Now()
 
-	file, err := os.Open("data/simple.txt")
+	file, err := os.Open("data/avatar.txt")
 	if err != nil {
 		log.Fatal(err)
 	}

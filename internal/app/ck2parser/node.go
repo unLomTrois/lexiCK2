@@ -1,5 +1,7 @@
 package ck2parser
 
+import "fmt"
+
 type NodeType string
 
 const (
@@ -23,10 +25,24 @@ func (n *Node) Node() *Node {
 	return n.Data.(*Node)
 }
 
-func (n *Node) KeyLiteral() string {
-	return n.Key.(string)
+func (n *Node) KeyLiteral() []byte {
+	switch t := n.Key.(type) {
+	case string:
+		return []byte(t)
+	case float32:
+		return []byte(fmt.Sprintf("%g", t))
+	}
+	return nil
 }
 
-func (n *Node) DataLiteral() string {
-	return n.Data.(string)
+func (n *Node) DataLiteral() []byte {
+
+	switch t := n.Data.(type) {
+	case string:
+		return []byte(t)
+	case float32:
+		return []byte(fmt.Sprintf("%g", t))
+	}
+
+	return nil
 }

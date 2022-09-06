@@ -2,7 +2,6 @@ package ck2parser
 
 import (
 	"fmt"
-	"strconv"
 )
 
 type Linter struct {
@@ -34,7 +33,7 @@ func (l *Linter) Lint() {
 
 	// l.LintNode()
 
-	fmt.Println("to write:", strconv.Quote(string(l.towrite)))
+	// fmt.Println("to write:", strconv.Quote(string(l.towrite)))
 	fmt.Println("bytes:", len(l.towrite))
 }
 
@@ -53,11 +52,12 @@ func (l *Linter) LintNode(node *Node) {
 		if len(l.towrite) > 0 && l.towrite[len(l.towrite)-1] != ' ' {
 			l.Intend()
 		}
-		l.towrite = append(l.towrite, []byte(node.KeyLiteral())...)
+
+		l.towrite = append(l.towrite, node.KeyLiteral()...)
 		l.towrite = append(l.towrite, byte(' '))
 		l.towrite = append(l.towrite, []byte(node.Operator)...)
 		l.towrite = append(l.towrite, byte(' '))
-		l.towrite = append(l.towrite, []byte(node.DataLiteral())...)
+		l.towrite = append(l.towrite, node.DataLiteral()...)
 
 		if l.singleline {
 			l.towrite = append(l.towrite, byte(' '))
@@ -66,12 +66,16 @@ func (l *Linter) LintNode(node *Node) {
 		}
 	}
 	if node.Type == Block {
-		if len(node.Data.([]*Node)) == 1 && (node.Key == "NOT" || node.Key == "limit") {
+		children := node.Data.([]*Node)
+		if len(children) == 1 && children[0].Type != Block {
 			l.singleline = true
 		}
 
+		// if (node.Key == "character_event" && len(node.Data.([]*Node)) <= 4) || (len(node.Data.([]*Node)) == 1 && (node.Key == "NOT" || node.Key == "limit")) {
+		// }
+
 		// l.Intend()
-		fmt.Println("node", node)
+		// fmt.Println("node", node)
 
 		if len(l.towrite) > 0 && l.towrite[len(l.towrite)-1] != ' ' {
 			l.Intend()
@@ -80,25 +84,25 @@ func (l *Linter) LintNode(node *Node) {
 			l.Level++
 		}
 
-		l.towrite = append(l.towrite, []byte(node.KeyLiteral())...)
+		l.towrite = append(l.towrite, node.KeyLiteral()...)
 		l.towrite = append(l.towrite, byte(' '))
 		l.towrite = append(l.towrite, []byte(node.Operator)...)
 		l.towrite = append(l.towrite, byte(' '))
 		l.towrite = append(l.towrite, byte('{'))
 
-		if node.Data.([]*Node)[0].Type == Comment || l.singleline {
+		if l.singleline || children[0].Type == Comment {
 			l.towrite = append(l.towrite, byte(' '))
 		} else {
 			l.towrite = append(l.towrite, byte('\n'))
 		}
 
-		for _, c := range node.Data.([]*Node) {
+		for _, c := range children {
 			// fmt.Println(c)
 
 			l.LintNode(c)
 		}
 
-		fmt.Println(l.singleline)
+		// fmt.Println(l.singleline)
 		if !l.singleline {
 			l.Level--
 			l.Intend()
