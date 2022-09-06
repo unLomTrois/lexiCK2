@@ -1,7 +1,9 @@
 package ck2parser
 
 import (
+	"bytes"
 	"fmt"
+	"regexp"
 )
 
 type Linter struct {
@@ -30,6 +32,10 @@ func (l *Linter) Lint() {
 			l.towrite = append(l.towrite, byte('\n'))
 		}
 	}
+
+	reg := regexp.MustCompile(`}\v\n\t+#`)
+	l.towrite = reg.ReplaceAll(l.towrite, []byte("} #"))
+	l.towrite = bytes.ReplaceAll(l.towrite, []byte("\v"), []byte(""))
 
 	fmt.Println("bytes:", len(l.towrite))
 }
@@ -110,9 +116,13 @@ func (l *Linter) LintBlock(node *Node) {
 	if !l.singleline {
 		l.Level--
 		l.Intend()
+		l.towrite = append(l.towrite, byte('}'))
+		l.towrite = append(l.towrite, byte('\n'))
+	} else {
+		l.towrite = append(l.towrite, byte('}'))
+		l.towrite = append(l.towrite, byte('\v'))
+		l.towrite = append(l.towrite, byte('\n'))
 	}
-	l.towrite = append(l.towrite, byte('}'))
-	l.towrite = append(l.towrite, byte('\n'))
 
 	l.singleline = false
 }

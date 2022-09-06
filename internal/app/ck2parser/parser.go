@@ -54,7 +54,6 @@ func (p *Parser) NodeList(opt_stop_lookahead ...lexer.TokenType) []*Node {
 			break
 		}
 		if len(opt_stop_lookahead) > 0 && p.lookahead.Type == opt_stop_lookahead[0] {
-			p._eat(lexer.END)
 			break
 		}
 
@@ -127,6 +126,7 @@ func (p *Parser) ExpressionNode() *Node {
 		}
 
 		node.Data = p.BlockNode()
+		p._eat(lexer.END)
 
 		if p.scope == node {
 			p.scope = nil
@@ -142,6 +142,8 @@ func (p *Parser) BlockNode() []*Node {
 	p._eat(lexer.START)
 
 	if p.lookahead.Type == lexer.END {
+		p._eat(lexer.END)
+
 		return nil
 	} else {
 		return p.NodeList(lexer.END)
