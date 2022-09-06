@@ -13,6 +13,7 @@ type Parser struct {
 	lexer     *lexer.Lexer `json:"-"`
 	lookahead *lexer.Token `json:"-"`
 	Data      []*Node      `json:"data"`
+	scope     *Node
 }
 
 func New(file *os.File) (*Parser, error) {
@@ -33,6 +34,7 @@ func New(file *os.File) (*Parser, error) {
 		lexer:     lexer,
 		lookahead: nil,
 		Data:      nil,
+		scope:     nil,
 	}, nil
 }
 
@@ -112,13 +114,25 @@ func (p *Parser) ExpressionNode() *Node {
 			Data:     value,
 		}
 	case lexer.START:
-		value = p.BlockNode()
-		return &Node{
+		node := &Node{
 			Type:     Block,
 			Key:      key,
 			Operator: _opvalue,
-			Data:     value,
+			Data:     nil,
 		}
+
+		if p.scope == nil {
+			node.Type = Entity
+			p.scope = node
+		}
+
+		node.Data = p.BlockNode()
+
+		if p.scope == node {
+			p.scope = nil
+		}
+
+		return node
 	default:
 		return nil
 	}
