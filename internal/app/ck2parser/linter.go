@@ -80,6 +80,9 @@ func (l *Linter) LintBlock(node *Node) {
 	if len(children) == 1 && children[0].Type != Block {
 		l.singleline = true
 	}
+	if node.Type == Block && node.Key == "character_event" && len(children) <= 2 && children[0].Type != Block {
+		l.singleline = true
+	}
 
 	if len(l.towrite) > 0 && l.towrite[len(l.towrite)-1] != ' ' {
 		l.Intend()
@@ -101,7 +104,6 @@ func (l *Linter) LintBlock(node *Node) {
 	}
 
 	for _, c := range children {
-
 		l.LintNode(c)
 	}
 
