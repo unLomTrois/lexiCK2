@@ -31,90 +31,88 @@ func (l *Linter) Lint() {
 		}
 	}
 
-	// l.LintNode()
-
-	// fmt.Println("to write:", strconv.Quote(string(l.towrite)))
 	fmt.Println("bytes:", len(l.towrite))
 }
 
 func (l *Linter) LintNode(node *Node) {
 	// fmt.Println("node", node)
 
-	if node.Type == Comment {
-		if len(l.towrite) > 0 && l.towrite[len(l.towrite)-1] != ' ' {
-			l.Intend()
-		}
+	switch node.Type {
+	case Comment:
+		l.LintComment(node)
+	case Property, Comparison:
+		l.LintProperty(node)
+	case Block:
+		l.LintBlock(node)
+	default:
+		panic("[Linter] unknown node type: " + node.Type)
+	}
+}
 
-		l.towrite = append(l.towrite, []byte(node.Data.(string))...)
+func (l *Linter) LintComment(node *Node) {
+	if len(l.towrite) > 0 && l.towrite[len(l.towrite)-1] != ' ' {
+		l.Intend()
+	}
+	l.towrite = append(l.towrite, []byte(node.Data.(string))...)
+	l.towrite = append(l.towrite, byte('\n'))
+}
+
+func (l *Linter) LintProperty(node *Node) {
+	if len(l.towrite) > 0 && l.towrite[len(l.towrite)-1] != ' ' {
+		l.Intend()
+	}
+
+	l.towrite = append(l.towrite, node.KeyLiteral()...)
+	l.towrite = append(l.towrite, byte(' '))
+	l.towrite = append(l.towrite, []byte(node.Operator)...)
+	l.towrite = append(l.towrite, byte(' '))
+	l.towrite = append(l.towrite, node.DataLiteral()...)
+
+	if l.singleline {
+		l.towrite = append(l.towrite, byte(' '))
+	} else {
 		l.towrite = append(l.towrite, byte('\n'))
 	}
-	if node.Type == Property {
-		if len(l.towrite) > 0 && l.towrite[len(l.towrite)-1] != ' ' {
-			l.Intend()
-		}
+}
 
-		l.towrite = append(l.towrite, node.KeyLiteral()...)
-		l.towrite = append(l.towrite, byte(' '))
-		l.towrite = append(l.towrite, []byte(node.Operator)...)
-		l.towrite = append(l.towrite, byte(' '))
-		l.towrite = append(l.towrite, node.DataLiteral()...)
-
-		if l.singleline {
-			l.towrite = append(l.towrite, byte(' '))
-		} else {
-			l.towrite = append(l.towrite, byte('\n'))
-		}
+func (l *Linter) LintBlock(node *Node) {
+	children := node.Data.([]*Node)
+	if len(children) == 1 && children[0].Type != Block {
+		l.singleline = true
 	}
-	if node.Type == Block {
-		children := node.Data.([]*Node)
-		if len(children) == 1 && children[0].Type != Block {
-			l.singleline = true
-		}
 
-		// if (node.Key == "character_event" && len(node.Data.([]*Node)) <= 4) || (len(node.Data.([]*Node)) == 1 && (node.Key == "NOT" || node.Key == "limit")) {
-		// }
+	if len(l.towrite) > 0 && l.towrite[len(l.towrite)-1] != ' ' {
+		l.Intend()
+	}
+	if !l.singleline {
+		l.Level++
+	}
 
-		// l.Intend()
-		// fmt.Println("node", node)
+	l.towrite = append(l.towrite, node.KeyLiteral()...)
+	l.towrite = append(l.towrite, byte(' '))
+	l.towrite = append(l.towrite, []byte(node.Operator)...)
+	l.towrite = append(l.towrite, byte(' '))
+	l.towrite = append(l.towrite, byte('{'))
 
-		if len(l.towrite) > 0 && l.towrite[len(l.towrite)-1] != ' ' {
-			l.Intend()
-		}
-		if !l.singleline {
-			l.Level++
-		}
-
-		l.towrite = append(l.towrite, node.KeyLiteral()...)
+	if l.singleline || children[0].Type == Comment {
 		l.towrite = append(l.towrite, byte(' '))
-		l.towrite = append(l.towrite, []byte(node.Operator)...)
-		l.towrite = append(l.towrite, byte(' '))
-		l.towrite = append(l.towrite, byte('{'))
-
-		if l.singleline || children[0].Type == Comment {
-			l.towrite = append(l.towrite, byte(' '))
-		} else {
-			l.towrite = append(l.towrite, byte('\n'))
-		}
-
-		for _, c := range children {
-			// fmt.Println(c)
-
-			l.LintNode(c)
-		}
-
-		// fmt.Println(l.singleline)
-		if !l.singleline {
-			l.Level--
-			l.Intend()
-		}
-		l.towrite = append(l.towrite, byte('}'))
+	} else {
 		l.towrite = append(l.towrite, byte('\n'))
-
-		// json, _ := json.MarshalIndent(node.Data, "", " ")
-		// fmt.Println(string(json))
-
-		l.singleline = false
 	}
+
+	for _, c := range children {
+
+		l.LintNode(c)
+	}
+
+	if !l.singleline {
+		l.Level--
+		l.Intend()
+	}
+	l.towrite = append(l.towrite, byte('}'))
+	l.towrite = append(l.towrite, byte('\n'))
+
+	l.singleline = false
 }
 
 func (l *Linter) Intend() {
