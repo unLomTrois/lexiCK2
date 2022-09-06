@@ -42,7 +42,7 @@ func (l *Linter) LintNode(node *Node) {
 		l.LintComment(node)
 	case Property, Comparison:
 		l.LintProperty(node)
-	case Block:
+	case Entity, Block:
 		l.LintBlock(node)
 	default:
 		panic("[Linter] unknown node type: " + node.Type)
