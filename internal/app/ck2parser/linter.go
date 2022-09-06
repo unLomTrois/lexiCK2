@@ -25,10 +25,9 @@ func NewLinter(file_path string, data []*Node) *Linter {
 }
 
 func (l *Linter) Lint() {
-
-	for _, node := range l.Data {
+	for i, node := range l.Data {
 		l.LintNode(node)
-		if node.Type != Comment {
+		if i != len(l.Data)-1 {
 			l.towrite = append(l.towrite, byte('\n'))
 		}
 	}
@@ -60,7 +59,6 @@ func (l *Linter) LintComment(node *Node) {
 		l.Intend()
 	}
 	l.towrite = append(l.towrite, []byte(node.Data.(string))...)
-	l.towrite = append(l.towrite, byte('\n'))
 }
 
 func (l *Linter) LintProperty(node *Node) {
