@@ -1,5 +1,5 @@
 # What is this?
-Golang implementation of linting PDXScript files for Crusader Kings 3
+Golang implementation of linting PDXScript files for Crusader Kings 2
 
 ## Structure
 It is composed of three parts:
