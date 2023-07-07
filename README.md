@@ -1,19 +1,14 @@
-# Что это?
-Это программа для форматирования языка разработки модов для игры [Crusader Kings 2](https://ck2.paradoxwikis.com/Scripting) 
+# What is this?
+Golang implementation of linting PDXScript files for Crusader Kings 3
 
-## Зачем?
-Во время разработки [мода](https://github.com/Rystic/ATLA-restored) для этой игры, наша команда столкнулась с тем, что большоие количество людей абсолютно хаотично форматируют код.
-У нас уже был [форматтер](https://github.com/cwtools/cwtools-vscode), но нас не устраивали правила его работы, и низкая поддержка проекта.
-Мне пришла идея разработать свой форматтер по типу prettier из мира веба.
+## Structure
+It is composed of three parts:
+- lexer (tokenizer)
+- parser (LL(1) parser)
+- linter
 
-Однако это оказалось сложнее простого добавления табов, замены пробелов на табы, и проч. 
+Lexer creates stream of tokens that is consumed by parser, catches lexical errors, like unknown tokens (e.g. you can't write `!=`)
 
-Поэтому пришлось также разработать парсер языка, благо он оказался не очень сложным
+Parser makes AST (Abstract Syntax Tree), catches syntax errors (e.g. not closed curly brace)
 
-## Как?
-
-Состоит из двух частей: парсер и форматтер
-
-Парсер преобразует текст файла с кодом в конкретное синтаксическое дерево, для этого он использует скользящий токенизатор
-
-Форматтер (линтер) анализирует получившееся синтаксическое дерево и реконструирует по нему текст кода, раставляет \n, \t, скобки, ключи, значения, блоки, и прочее.
+Linter takes AST and rewrites the file by set linting rules
